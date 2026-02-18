@@ -1,0 +1,46 @@
+{
+  "name": "simpleengine",
+  "version": "0.1.0",
+  "description": "A simple OpenGL-based game engine written in C++",
+  "homepage": "https://github.com/kafkaphoenix/simpleengine",
+  "license": "MIT",
+  "dependencies": [
+    {
+      "name": "glad",
+      "features": [
+        "gl-api-46"
+      ]
+    },
+    "glfw3",
+    "glm",
+    "stb",
+    "tinygltf",
+    "simpleini"
+  ],
+  "overrides": [
+    {
+      "name": "glad",
+      "version": "0.1.36"
+    },
+    {
+      "name": "glfw3",
+      "version": "3.4#1"
+    },
+    {
+      "name": "glm",
+      "version": "1.0.1#3"
+    },
+    {
+      "name": "stb",
+      "version": "2024-07-29#1"
+    },
+    {
+      "name": "tinygltf",
+      "version": "2.9.7#0"
+    },
+    {
+      "name": "simpleini",
+      "version": "4.25#0"
+    }
+  ]
+}
