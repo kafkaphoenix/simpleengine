@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 
 #include <algorithm>
+#include "MemoryUtils.h"
 
 Application::Application()
     : m_Config(Config::load("config.ini")),
@@ -56,10 +57,12 @@ void Application::updateStats(float deltaTime) {
     if (m_StatsTimer >= m_Config.stats().interval) {
         float fps = m_StatsFrames / m_StatsTimer;
         const auto& stats = m_Renderer.getStats();
+        size_t memKB = getProcessMemoryUsageKB();
         std::string title = m_Window.baseTitle() +
                             " | FPS: " + std::to_string(static_cast<int>(fps)) +
                             " | Draws: " + std::to_string(stats.drawCalls) +
-                            " | Tris: " + std::to_string(stats.triangles);
+                            " | Triangles: " + std::to_string(stats.triangles) +
+                            " | RAM: " + std::to_string(memKB / 1024) + "MB";
         m_Window.setTitle(title);
         m_StatsFrames = 0;
         m_StatsTimer = 0.0f;
