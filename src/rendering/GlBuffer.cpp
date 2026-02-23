@@ -23,10 +23,6 @@ GlBuffer& GlBuffer::operator=(GlBuffer&& other) noexcept {
     return *this;
 }
 
-void GlBuffer::bind() const {
-    glBindBuffer(m_Target, m_Id);
-}
-
 void GlBuffer::setData(GLsizeiptr size, const void* data, GLenum usage) const {
     glNamedBufferData(m_Id, size, data, usage);
 }

@@ -35,7 +35,7 @@ void applyAlphaCutoff(float alpha) {
 }
 
 vec3 computeSunDiffuse(vec3 baseColor, vec3 normal) {
-    vec3 L = normalize(-u_SunDir.xyz);
+    vec3 L = -u_SunDir.xyz;
     float NdotL = max(dot(normal, L), 0.0);
     return baseColor * NdotL * u_SunColor.xyz;
 }

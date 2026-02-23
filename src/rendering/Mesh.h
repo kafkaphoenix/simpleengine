@@ -20,11 +20,14 @@ class Mesh {
     unsigned int getVAO() const { return m_Vao.id(); }
     unsigned int getIndexCount() const { return indexCount; }
     void updateInstanceBuffer(const void* data, size_t size) const;
+    static void setDefaultInstanceCapacityBytes(size_t bytes);
 
    private:
     VertexArray m_Vao;
     GlBuffer m_Vbo{GL_ARRAY_BUFFER};
     GlBuffer m_Ebo{GL_ELEMENT_ARRAY_BUFFER};
     GlBuffer m_InstanceVbo{GL_ARRAY_BUFFER};
+    mutable size_t m_InstanceCapacityBytes = 0;
     unsigned int indexCount = 0;
+    static size_t s_DefaultInstanceCapacityBytes;
 };

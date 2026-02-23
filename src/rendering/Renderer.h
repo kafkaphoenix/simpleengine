@@ -11,13 +11,13 @@
 
 struct InstanceData {
     glm::mat4 modelMatrix;
+    glm::mat3 normalMatrix;
 };
 
 struct BatchKey {
     Mesh* mesh;
     Material* material;
 
-    // Simple hash function
     struct Hash {
         size_t operator()(const BatchKey& key) const {
             size_t h1 = std::hash<uintptr_t>{}(reinterpret_cast<uintptr_t>(key.mesh));
@@ -60,7 +60,7 @@ class Renderer {
     void flush();
     void toggleWireframe();
     void setLights(const LightSet& lights) { m_Lights = lights; }
-    void setBatchSize(size_t maxInstances) { m_MaxBatchSize = maxInstances; }
+    void setBatchSize(size_t maxInstances);
     void reset();
 
     struct Stats {

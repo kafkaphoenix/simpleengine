@@ -12,7 +12,6 @@ class GlBuffer {
     GlBuffer(GlBuffer&& other) noexcept;
     GlBuffer& operator=(GlBuffer&& other) noexcept;
 
-    void bind() const;
     void setData(GLsizeiptr size, const void* data, GLenum usage) const;
     void updateSubData(GLintptr offset, GLsizeiptr size, const void* data) const;
     unsigned int id() const { return m_Id; }

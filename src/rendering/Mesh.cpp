@@ -1,9 +1,17 @@
 #include "Mesh.h"
 
+#include <cstddef>  // For offsetof
 #include <glm/glm.hpp>
 #include <stdexcept>
 
 #include "GlUtils.h"
+#include "Renderer.h"  // For InstanceData
+
+size_t Mesh::s_DefaultInstanceCapacityBytes = 0;
+
+void Mesh::setDefaultInstanceCapacityBytes(size_t bytes) {
+    s_DefaultInstanceCapacityBytes = bytes;
+}
 
 Mesh::Mesh(float* vertices, unsigned int vertSize,
            unsigned int* indices, unsigned int idxCount)
@@ -35,18 +43,31 @@ Mesh::Mesh(float* vertices, unsigned int vertSize,
     m_Vao.enableAttrib(2);
     m_Vao.setAttribFormat(2, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float));
     m_Vao.setAttribBinding(2, 0);
-    // Reserve space for instance data
-    m_InstanceVbo.setData(sizeof(glm::mat4) * 1000, nullptr, GL_DYNAMIC_DRAW);
 
-    m_Vao.setVertexBuffer(1, m_InstanceVbo.id(), 0, sizeof(glm::mat4));
+    if (s_DefaultInstanceCapacityBytes > 0) {
+        m_InstanceVbo.setData(static_cast<GLsizeiptr>(s_DefaultInstanceCapacityBytes), nullptr, GL_DYNAMIC_DRAW);
+        m_InstanceCapacityBytes = s_DefaultInstanceCapacityBytes;
+    }
 
-    // Setup instance matrix attributes (locations 3-6)
+    const GLsizei instanceStride = static_cast<GLsizei>(sizeof(InstanceData));
+    m_Vao.setVertexBuffer(1, m_InstanceVbo.id(), 0, instanceStride);
+
+    // Setup instance modelMatrix attributes (locations 3-6)
     for (int i = 0; i < 4; i++) {
         m_Vao.enableAttrib(3 + i);
         m_Vao.setAttribFormat(
             3 + i, 4, GL_FLOAT, GL_FALSE,
-            static_cast<GLuint>(sizeof(glm::vec4) * i));
+            static_cast<GLuint>(offsetof(InstanceData, modelMatrix) + sizeof(glm::vec4) * i));
         m_Vao.setAttribBinding(3 + i, 1);
+    }
+
+    // Setup instance normalMatrix attributes (locations 7-9, only 3 vec4s for mat3)
+    for (int i = 0; i < 3; i++) {
+        m_Vao.enableAttrib(7 + i);
+        m_Vao.setAttribFormat(
+            7 + i, 3, GL_FLOAT, GL_FALSE,
+            static_cast<GLuint>(offsetof(InstanceData, normalMatrix) + sizeof(glm::vec3) * i));
+        m_Vao.setAttribBinding(7 + i, 1);
     }
     m_Vao.setBindingDivisor(1, 1);
 
@@ -71,5 +92,16 @@ void Mesh::drawInstanced(unsigned int count) const {
 }
 
 void Mesh::updateInstanceBuffer(const void* data, size_t size) const {
-    m_InstanceVbo.setData(static_cast<GLsizeiptr>(size), data, GL_DYNAMIC_DRAW);
+    if (size == 0) return;
+
+    if (size > m_InstanceCapacityBytes) {
+        size_t newCapacity = m_InstanceCapacityBytes == 0 ? size : m_InstanceCapacityBytes;
+        while (newCapacity < size) {
+            newCapacity *= 2;
+        }
+        m_InstanceVbo.setData(static_cast<GLsizeiptr>(newCapacity), nullptr, GL_DYNAMIC_DRAW);
+        m_InstanceCapacityBytes = newCapacity;
+    }
+
+    m_InstanceVbo.updateSubData(0, static_cast<GLsizeiptr>(size), data);
 }

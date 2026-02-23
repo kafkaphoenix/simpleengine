@@ -1,11 +1,12 @@
 #include <cstddef>
 #if defined(_WIN32)
-#  include <windows.h>
-#  include <psapi.h>
+#include <psapi.h>
+#include <windows.h>
 #else
-#  include <fstream>
-#  include <string>
-#  include <unistd.h>
+#include <unistd.h>
+
+#include <fstream>
+#include <string>
 #endif
 
 inline size_t getProcessMemoryUsageKB() {

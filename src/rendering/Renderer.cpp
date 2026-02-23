@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_inverse.hpp>
 #include <stdexcept>
 
 #include "Texture.h"
@@ -27,6 +28,12 @@ struct FrameUbo {
 Renderer::Renderer() {
     setupGlState();
     setupFrameUbo();
+    Mesh::setDefaultInstanceCapacityBytes(m_MaxBatchSize * sizeof(InstanceData));
+}
+
+void Renderer::setBatchSize(size_t maxInstances) {
+    m_MaxBatchSize = maxInstances;
+    Mesh::setDefaultInstanceCapacityBytes(m_MaxBatchSize * sizeof(InstanceData));
 }
 
 void Renderer::setupGlState() {
@@ -65,7 +72,11 @@ void Renderer::submit(const Renderable& renderable) {
         materialPtr.get()};
 
     InstanceData data;
+    // We compute the model matrix on the CPU since we need it for correct culling, so we avoid costly matrix operations in the shader for every vertex
     data.modelMatrix = renderable.transform.getMatrix();
+    // We also compute the normal matrix since we need it for correct normal transformation in the shader, and computing it on the CPU allows us to avoid doing inverse-transpose operations in the shader for every vertex
+    glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(data.modelMatrix)));
+    data.normalMatrix = normalMatrix;
 
     auto& batch = m_Batches[key];
     batch.instances.push_back(data);
