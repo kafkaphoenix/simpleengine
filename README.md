@@ -16,7 +16,7 @@ Dependency management is handled with vcpkg. Make sure to install the required l
 - OpenGL 4.5 DSA for buffers/VAOs/textures.
 - Frame UBO for per-frame camera and light data.
 - Directional sun + ambient + optional point lights.
-- Instanced rendering, batching by mesh/material.
+- Instanced rendering, CPU batching by mesh/material with frustum culling.
 - glTF model loading with tinygltf.
 - Simple camera controller with mouse look and WASD movement.
 - Wireframe toggle and fullscreen mode.
