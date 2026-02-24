@@ -1,15 +1,22 @@
 #pragma once
+
 #include <glad/glad.h>
 
 #include <cstddef>
+#include <glm/vec3.hpp>
 
 #include "GlBuffer.h"
 #include "VertexArray.h"
 
+struct AABB {
+    glm::vec3 min;
+    glm::vec3 max;
+};
+
 class Mesh {
    public:
     Mesh(float* vertices, unsigned int vertSize,
-         unsigned int* indices, unsigned int idxCount);
+         unsigned int* indices, unsigned int idxCount, const AABB& aabb);
     Mesh(const Mesh&) = delete;
     Mesh& operator=(const Mesh&) = delete;
     Mesh(Mesh&&) = delete;
@@ -21,11 +28,14 @@ class Mesh {
     unsigned int getIndexCount() const { return indexCount; }
     void updateInstanceBuffer(const void* data, size_t size) const;
     static void setDefaultInstanceCapacityBytes(size_t bytes);
+    const AABB& getAABB() const { return m_AABB; }
+    void setAABB(const AABB& aabb) { m_AABB = aabb; }
 
    private:
     VertexArray m_Vao;
     GlBuffer m_Vbo{GL_ARRAY_BUFFER};
     GlBuffer m_Ebo{GL_ELEMENT_ARRAY_BUFFER};
+    AABB m_AABB;
     GlBuffer m_InstanceVbo{GL_ARRAY_BUFFER};
     mutable size_t m_InstanceCapacityBytes = 0;
     unsigned int indexCount = 0;

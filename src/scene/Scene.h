@@ -34,7 +34,7 @@ class Scene {
     void createSponzaModel();
 
    private:
-    void createModelInstance(const std::string& path, const Transform& transform);
+    void createModelInstance(const std::string& modelPath, const std::string& shaderPath, const Transform& transform);
     void createRenderablesFromModel(ModelHandle model, const Transform& transform);
 
     std::vector<Renderable> m_Renderables;

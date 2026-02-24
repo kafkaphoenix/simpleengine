@@ -4,6 +4,7 @@
 #include <tiny_gltf.h>
 
 #include <cstdint>
+#include <glm/common.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include <iostream>
@@ -284,6 +285,32 @@ std::vector<float> buildVertices(const float* posData,
     return vertices;
 }
 
+bool checkAccessorMinMax(const tinygltf::Model& gltfModel, const tinygltf::Primitive& primitive) {
+    auto& accessor = gltfModel.accessors[primitive.indices];
+    return !accessor.minValues.empty() && !accessor.maxValues.empty() &&
+           accessor.minValues.size() == accessor.maxValues.size();
+}
+
+AABB computeAABB(const float* posData, const tinygltf::Accessor& accessor, bool hasMinMax) {
+    AABB aabb;
+    if (hasMinMax) {
+        aabb.min = glm::vec3(accessor.minValues[0], accessor.minValues[1], accessor.minValues[2]);
+        aabb.max = glm::vec3(accessor.maxValues[0], accessor.maxValues[1], accessor.maxValues[2]);
+        return aabb;
+    }
+
+    aabb.min = glm::vec3(posData[0], posData[1], posData[2]);
+    aabb.max = aabb.min;
+
+    for (size_t i = 1; i < accessor.count; ++i) {
+        glm::vec3 pos(posData[i * 3], posData[i * 3 + 1], posData[i * 3 + 2]);
+        aabb.min = glm::min(aabb.min, pos);
+        aabb.max = glm::max(aabb.max, pos);
+    }
+
+    return aabb;
+}
+
 std::unique_ptr<Mesh> buildMeshFromPrimitive(const tinygltf::Model& gltfModel,
                                              const tinygltf::Primitive& primitive) {
     auto posIt = primitive.attributes.find("POSITION");
@@ -299,14 +326,15 @@ std::unique_ptr<Mesh> buildMeshFromPrimitive(const tinygltf::Model& gltfModel,
     const auto& posBuffer = gltfModel.buffers[posBufferView.buffer];
     const float* posData = reinterpret_cast<const float*>(
         &posBuffer.data[posBufferView.byteOffset + posAccessor.byteOffset]);
+    bool hasAABB = checkAccessorMinMax(gltfModel, primitive);
 
     auto normals = readVec3Attribute(gltfModel, primitive, "NORMAL");
     auto texCoords = readVec2Attribute(gltfModel, primitive, "TEXCOORD_0");
     auto indices = readIndices(gltfModel, primitive, posAccessor.count);
     auto vertices = buildVertices(posData, posAccessor.count, normals, texCoords);
-
+    auto aabb = computeAABB(posData, posAccessor, hasAABB);
     return std::make_unique<Mesh>(vertices.data(), vertices.size() * sizeof(float),
-                                  indices.data(), indices.size());
+                                  indices.data(), indices.size(), aabb);
 }
 
 MaterialHandle resolveMaterial(const tinygltf::Primitive& primitive,
@@ -319,16 +347,15 @@ MaterialHandle resolveMaterial(const tinygltf::Primitive& primitive,
 }
 }
 
-// GLTF constructor (GLTF format only)
-Model::Model(const std::string& gltfPath, AssetManager& assetManager)
+Model::Model(const std::string& gltfPath, const std::string& shaderPath, AssetManager& assetManager)
     : Asset(gltfPath) {
     tinygltf::Model gltfModel = loadGltfModel(gltfPath);
     std::string gltfDir = getDirectory(gltfPath);
     auto gltfTextures = loadGltfTextures(gltfModel, gltfDir, assetManager);
 
-    ShaderHandle defaultShader = assetManager.loadShader("assets/shaders/basic.vert", "assets/shaders/basic.frag");
-    MaterialHandle defaultMaterial = createDefaultMaterial(m_Path + "#default", assetManager, defaultShader);
-    auto gltfMaterials = buildMaterials(gltfModel, assetManager, defaultShader, gltfTextures, m_Path);
+    ShaderHandle shader = assetManager.loadShader(shaderPath);
+    MaterialHandle defaultMaterial = createDefaultMaterial(m_Path + "#default", assetManager, shader);
+    auto gltfMaterials = buildMaterials(gltfModel, assetManager, shader, gltfTextures, m_Path);
 
     for (const auto& mesh : gltfModel.meshes) {
         for (const auto& primitive : mesh.primitives) {
@@ -336,6 +363,7 @@ Model::Model(const std::string& gltfPath, AssetManager& assetManager)
             if (!meshPtr) {
                 continue;
             }
+
             MaterialHandle materialHandle = resolveMaterial(primitive, gltfMaterials, defaultMaterial);
             m_SubMeshes.push_back({std::move(meshPtr), materialHandle});
         }

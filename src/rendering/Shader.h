@@ -6,7 +6,7 @@
 
 class Shader : public Asset {
    public:
-    Shader(const std::string& vertexPath, const std::string& fragmentPath);
+    Shader(const std::string& shaderPath);
     ~Shader();
 
     Shader(const Shader&) = delete;
@@ -25,17 +25,13 @@ class Shader : public Asset {
     void setBool(const std::string& name, bool value) const;
     void bindUniformBlock(const std::string& name, unsigned int binding) const;
 
-    const std::string& getPath() const override { return m_VertexPath; }
-
-    const std::string& getVertexPath() const { return m_VertexPath; }
-    const std::string& getFragmentPath() const { return m_FragmentPath; }
+    const std::string& getPath() const override { return m_Path; }
 
    private:
     int getUniformLocation(const std::string& name) const;
 
     unsigned int m_ID;
-    std::string m_VertexPath;
-    std::string m_FragmentPath;
+    std::string m_Path;
     mutable std::unordered_map<std::string, int> m_UniformLocations;
     mutable std::unordered_map<std::string, unsigned int> m_BlockIndices;
 };

@@ -15,15 +15,16 @@ void Scene::createSponzaModel() {
     Transform t;
     t.position = {0.0f, 0.0f, 0.0f};
     t.scale = {0.1f, 0.1f, 0.1f};
-    createModelInstance("assets/models/sponza/sponza.gltf", t);
+    ShaderHandle shader = m_AssetManager.loadShader("assets/shaders/basic");
+    createModelInstance("assets/models/sponza/sponza.gltf", shader.get()->getPath(), t);
 }
 
 void Scene::update(float deltaTime, const Input& input) {
     m_Player.update(deltaTime, input);
 }
 
-void Scene::createModelInstance(const std::string& path, const Transform& transform) {
-    auto model = m_AssetManager.loadModel(path);
+void Scene::createModelInstance(const std::string& modelPath, const std::string& shaderPath, const Transform& transform) {
+    auto model = m_AssetManager.loadModel(modelPath, shaderPath);
     createRenderablesFromModel(model, transform);
 }
 

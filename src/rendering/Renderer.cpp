@@ -7,6 +7,7 @@
 #include <glm/gtc/matrix_inverse.hpp>
 #include <stdexcept>
 
+#include "Frustum.h"
 #include "Texture.h"
 
 namespace {
@@ -67,14 +68,23 @@ void Renderer::submit(const Renderable& renderable) {
         throw std::runtime_error("Renderable missing material");
     }
 
+    if (!m_Camera) {
+        throw std::runtime_error("Renderer error: No camera set for rendering!");
+    }
+
+    glm::mat4 modelMatrix = renderable.transform.getMatrix();
+    Frustum frustum = extractFrustum(m_Camera->getViewProjection());
+    const AABB& aabb = renderable.mesh->getAABB();
+    if (!frustumIntersectsAABB(frustum, aabb, modelMatrix)) {
+        return;  // Culled
+    }
+
     BatchKey key{
         renderable.mesh,
         materialPtr.get()};
 
     InstanceData data;
-    // We compute the model matrix on the CPU since we need it for correct culling, so we avoid costly matrix operations in the shader for every vertex
-    data.modelMatrix = renderable.transform.getMatrix();
-    // We also compute the normal matrix since we need it for correct normal transformation in the shader, and computing it on the CPU allows us to avoid doing inverse-transpose operations in the shader for every vertex
+    data.modelMatrix = modelMatrix;
     glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(data.modelMatrix)));
     data.normalMatrix = normalMatrix;
 

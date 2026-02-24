@@ -6,11 +6,10 @@
 #include "Asset.h"
 
 template <>
-AssetHandle<Model> AssetManager::loadAsset<Model>(const std::string& path) {
+AssetHandle<Model> AssetManager::loadAsset(const std::string& path, const std::string& shaderPath) {
     uint64_t id = generateId();
-
     try {
-        auto model = std::make_shared<Model>(path, *this);
+        auto model = std::make_shared<Model>(path, shaderPath, *this);
         m_Assets[id] = model;
         return AssetHandle<Model>(this, id);
     } catch (const std::exception& e) {
@@ -19,23 +18,15 @@ AssetHandle<Model> AssetManager::loadAsset<Model>(const std::string& path) {
 }
 
 template <>
-AssetHandle<Shader> AssetManager::loadAsset<Shader>(const std::string& path) {
-    size_t separator = path.find('|');
-    if (separator == std::string::npos) {
-        throw std::runtime_error("Shader path must be in format 'vertex|fragment': " + path);
-    }
-
-    std::string vertPath = path.substr(0, separator);
-    std::string fragPath = path.substr(separator + 1);
-
+AssetHandle<Shader> AssetManager::loadAsset<Shader>(const std::string& shaderPath) {
     uint64_t id = generateId();
 
     try {
-        auto shader = std::make_shared<Shader>(vertPath, fragPath);
+        auto shader = std::make_shared<Shader>(shaderPath);
         m_Assets[id] = shader;
         return AssetHandle<Shader>(this, id);
     } catch (const std::exception& e) {
-        throw std::runtime_error("Failed to load shader '" + path + "': " + std::string(e.what()));
+        throw std::runtime_error("Failed to load shader '" + shaderPath + "': " + std::string(e.what()));
     }
 }
 
@@ -60,12 +51,12 @@ AssetHandle<Texture> AssetManager::loadAsset<Texture>(const std::string& path) {
     }
 }
 
-ShaderHandle AssetManager::loadShader(const std::string& vertPath, const std::string& fragPath) {
-    return loadAsset<Shader>(vertPath + "|" + fragPath);
+ShaderHandle AssetManager::loadShader(const std::string& shaderPath) {
+    return loadAsset<Shader>(shaderPath);
 }
 
-ModelHandle AssetManager::loadModel(const std::string& gltfPath) {
-    return loadAsset<Model>(gltfPath);
+ModelHandle AssetManager::loadModel(const std::string& gltfPath, const std::string& shaderPath) {
+    return loadAsset<Model>(gltfPath, shaderPath);
 }
 
 TextureHandle AssetManager::loadTexture(const std::string& path) {

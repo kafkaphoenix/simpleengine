@@ -36,27 +36,24 @@ static void checkProgramLinking(unsigned int program) {
     }
 }
 
-Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath)
-    : Asset(vertexPath), m_VertexPath(vertexPath), m_FragmentPath(fragmentPath) {
-    std::string vSrc = loadFile(vertexPath);
-    std::string fSrc = loadFile(fragmentPath);
+Shader::Shader(const std::string& shaderPath)
+    : Asset(shaderPath), m_Path(shaderPath) {
+    std::string vSrc = loadFile(shaderPath + ".vert");
+    std::string fSrc = loadFile(shaderPath + ".frag");
 
     const char* v = vSrc.c_str();
     const char* f = fSrc.c_str();
 
-    // Compile vertex shader
     unsigned int vs = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vs, 1, &v, nullptr);
     glCompileShader(vs);
     checkShaderCompilation(vs, "VERTEX");
 
-    // Compile fragment shader
     unsigned int fs = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fs, 1, &f, nullptr);
     glCompileShader(fs);
     checkShaderCompilation(fs, "FRAGMENT");
 
-    // Link program
     m_ID = glCreateProgram();
     glAttachShader(m_ID, vs);
     glAttachShader(m_ID, fs);

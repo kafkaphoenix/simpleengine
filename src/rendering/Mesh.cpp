@@ -14,8 +14,8 @@ void Mesh::setDefaultInstanceCapacityBytes(size_t bytes) {
 }
 
 Mesh::Mesh(float* vertices, unsigned int vertSize,
-           unsigned int* indices, unsigned int idxCount)
-    : indexCount(idxCount) {
+           unsigned int* indices, unsigned int idxCount, const AABB& aabb)
+    : indexCount(idxCount), m_AABB(aabb) {
     if (!vertices || !indices || vertSize == 0 || idxCount == 0) {
         throw std::invalid_argument("Invalid mesh data provided!");
     }

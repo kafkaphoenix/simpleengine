@@ -16,11 +16,11 @@ class AssetManager {
     AssetManager() : m_NextId(1) {}  // Start IDs from 1 (0 means invalid)
     ~AssetManager() = default;
 
-    template <typename T>
-    AssetHandle<T> loadAsset(const std::string& path);
+    template <typename T, typename... Args>
+    AssetHandle<T> loadAsset(const std::string& path, Args&&... args);
 
-    ShaderHandle loadShader(const std::string& vertPath, const std::string& fragPath);
-    ModelHandle loadModel(const std::string& gltfPath);
+    ShaderHandle loadShader(const std::string& shaderPath);
+    ModelHandle loadModel(const std::string& gltfPath, const std::string& shaderPath);
     TextureHandle loadTexture(const std::string& path);
     MaterialHandle createMaterial(const std::string& name,
                                   ShaderHandle shader,
