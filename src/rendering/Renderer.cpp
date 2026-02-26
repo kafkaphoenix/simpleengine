@@ -8,7 +8,7 @@
 #include <stdexcept>
 
 #include "Frustum.h"
-#include "Texture.h"
+#include "../assets/Texture.h"
 
 namespace {
 struct PointLightUbo {

@@ -4,12 +4,12 @@
 #include <string>
 #include <unordered_map>
 
-#include "../rendering/Material.h"
-#include "../rendering/Shader.h"
-#include "../rendering/Texture.h"
 #include "Asset.h"
 #include "AssetHandle.h"
+#include "Material.h"
 #include "Model.h"
+#include "Shader.h"
+#include "Texture.h"
 
 class AssetManager {
    public:

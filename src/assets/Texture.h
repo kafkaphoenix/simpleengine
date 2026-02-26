@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-#include "../assets/Asset.h"
+#include "Asset.h"
 
 class Texture : public Asset {
    public:

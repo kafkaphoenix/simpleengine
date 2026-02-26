@@ -1,10 +1,10 @@
 #include "AssetHandle.h"
 
-#include "../rendering/Material.h"
-#include "../rendering/Shader.h"
-#include "../rendering/Texture.h"
 #include "AssetManager.h"
+#include "Material.h"
 #include "Model.h"
+#include "Shader.h"
+#include "Texture.h"
 
 template <>
 std::shared_ptr<Model> AssetHandle<Model>::get() const {

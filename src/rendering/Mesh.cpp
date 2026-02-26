@@ -1,11 +1,11 @@
 #include "Mesh.h"
 
-#include <cstddef>  // For offsetof
+#include <cstddef>
 #include <glm/glm.hpp>
 #include <stdexcept>
 
 #include "GlUtils.h"
-#include "Renderer.h"  // For InstanceData
+#include "Renderer.h"
 
 size_t Mesh::s_DefaultInstanceCapacityBytes = 0;
 

@@ -4,9 +4,9 @@
 #include <string>
 #include <vector>
 
-#include "../rendering/Material.h"
 #include "../rendering/Mesh.h"
 #include "Asset.h"
+#include "Material.h"
 
 class AssetManager;
 

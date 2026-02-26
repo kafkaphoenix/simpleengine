@@ -1,4 +1,3 @@
-// Camera.cpp
 #include "Camera.h"
 
 #include <cmath>

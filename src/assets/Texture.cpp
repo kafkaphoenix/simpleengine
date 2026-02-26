@@ -41,7 +41,6 @@ Texture::Texture(const std::string& path, bool flipVertically)
     glTextureParameteri(m_ID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     applyAnisotropy(m_ID);
 
-    // Handle different channel formats properly
     GLenum internalFormat, format;
     if (channels == 4) {
         internalFormat = GL_RGBA8;

@@ -2,7 +2,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "../assets/Asset.h"
+#include "Asset.h"
 
 class Shader : public Asset {
    public:

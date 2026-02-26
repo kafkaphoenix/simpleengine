@@ -2,8 +2,8 @@
 
 #include <stdexcept>
 
-#include "../rendering/Material.h"
 #include "Asset.h"
+#include "Material.h"
 
 template <>
 AssetHandle<Model> AssetManager::loadAsset(const std::string& path, const std::string& shaderPath) {

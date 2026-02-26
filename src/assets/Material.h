@@ -4,8 +4,8 @@
 #include <glm/vec4.hpp>
 #include <string>
 
-#include "../assets/Asset.h"
-#include "../assets/AssetHandle.h"
+#include "Asset.h"
+#include "AssetHandle.h"
 
 struct RenderState {
     bool blend = false;
