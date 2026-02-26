@@ -1,9 +1,9 @@
 #pragma once
 #include <vector>
 
-#include "../assets/AssetManager.h"
-#include "../rendering/Renderer.h"
-#include "../scene/Scene.h"
+#include "assets/AssetManager.h"
+#include "rendering/Renderer.h"
+#include "scene/Scene.h"
 #include "Config.h"
 #include "EventBus.h"
 #include "Input.h"

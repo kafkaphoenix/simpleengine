@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../assets/Material.h"
+#include "assets/Material.h"
 #include "Transform.h"
 
 class Mesh;

@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-#include "../core/Input.h"
+#include "core/Input.h"
 
 Scene::Scene(float aspectRatio, AssetManager& assetManager) : m_Player(aspectRatio), m_AssetManager(assetManager) {
 }

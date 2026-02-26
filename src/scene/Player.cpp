@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-#include "../core/Input.h"
+#include "core/Input.h"
 
 void Player::setMouseSmoothing(float alpha) {
     m_MouseSmoothAlpha = std::clamp(alpha, 0.0f, 1.0f);

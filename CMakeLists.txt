@@ -39,6 +39,7 @@ target_link_libraries(${PROJECT_NAME}
     glfw
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src) # to avoid using relative paths in includes
+# Include the src directory for header files, so we avoid having to use relative paths in the code
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/copy_assets.cmake)

@@ -2,8 +2,8 @@
 #include <memory>
 #include <vector>
 
-#include "../assets/AssetManager.h"
-#include "../assets/Model.h"
+#include "assets/AssetManager.h"
+#include "assets/Model.h"
 #include "Player.h"
 #include "Renderable.h"
 #include "Sky.h"

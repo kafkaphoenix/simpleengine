@@ -3,9 +3,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../assets/Shader.h"
-#include "../scene/Camera.h"
-#include "../scene/Renderable.h"
+#include "assets/Shader.h"
+#include "scene/Camera.h"
+#include "scene/Renderable.h"
 #include "Mesh.h"
 #include "UniformBuffer.h"
 
