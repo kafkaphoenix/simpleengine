@@ -1,6 +1,6 @@
 # A simple engine
 
-A simple engine can be used as a starting point for more complex engines or games. It focuses on clarity and a small feature set while keeping modern OpenGL practices.
+Modern C++ OpenGL engine that can be used as a starting point for more complex engines or games. It focuses on clarity and a small feature set while keeping modern practices.
 
 ## Demo Sponza scene
 ![Sponza screenshot](docs/img/demo.png)
@@ -36,7 +36,7 @@ Dependency management is handled with vcpkg. Make sure to install the required l
 - SimpleIni for config parsing.
 
 ## Project layout
-- assets: Textures, models, and shaders.
+- assets: Shaders, textures, models, and materials.
 - build: CMake build output.
 - cmake: Helper CMake scripts (asset copying).
 - src: Engine code.
@@ -55,7 +55,7 @@ Dependency management is handled with vcpkg. Make sure to install the required l
 - Shader: GLSL program compilation and uniform updates.
 - Texture: Image loading and OpenGL texture setup.
 - Material: Shader + textures + render state, matching glTF data. Lighting is simple diffuse.
-- Mesh: Vertex and index buffers with instanced rendering (OpenGL 4.5 DSA).
+- Mesh: Vertex and index buffers with instanced rendering.
 - Renderer: Batches by mesh + material and draws instanced geometry (Frame UBO + lights).
 - Renderable: Mesh + material + transform tuple submitted to the renderer.
 
@@ -82,3 +82,18 @@ Dependency management is handled with vcpkg. Make sure to install the required l
 ## Config
 Settings are loaded from config.ini with sections for window, input, camera, and stats.
 
+## Potential improvements
+- Better error handling and logging. Using a logging library like spdlog would be a good improvement.
+- More robust asset management with reference counting and unloading/reloading.
+- More complete glTF support (animations, PBR materials, etc).
+- More flexible renderer with support for multiple passes, post-processing, etc.
+- Adding more complex lighting models, shadows, and post-processing effects.
+- More complete input handling with action mapping and support for gamepads.
+- More complete scene management with entities, components, and systems.
+- Debug rendering and tools for inspecting the scene and assets. Using a library like ImGui would be great for this.
+- UI system for in-game menus, HUD, etc. Using RmlUI or similar would be a good option.
+- Multithreading for asset loading and potentially rendering.
+- Using Vulkan instead of OpenGL for better performance and modern features.
+- Serialization for saving/loading scenes and assets.
+- Editor mode with real-time scene editing and asset management.
+- Memory and Performance profiling to identify bottlenecks and optimize critical paths. Using a profiler like Tracy would be very helpful for this.
