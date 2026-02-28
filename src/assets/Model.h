@@ -17,12 +17,15 @@ struct SubMesh {
 
 class Model : public Asset {
    public:
-    Model(const std::string& gltfPath, const std::string& shaderPath, AssetManager& assetManager);
+    Model(const std::string& gltfPath,
+          const std::string& shaderPath,
+          AssetManager& assetManager);
+
     const std::vector<SubMesh>& getSubMeshes() const { return m_SubMeshes; }
     const std::string& getPath() const override { return m_Path; }
 
    private:
-    std::string getDirectory(const std::string& filepath) const;
+    static std::string getDirectory(const std::string& filepath);
 
     std::vector<SubMesh> m_SubMeshes;
 };

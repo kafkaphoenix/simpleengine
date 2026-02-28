@@ -1,8 +1,10 @@
 #include "Scene.h"
 
 #include <stdexcept>
+#include <iostream>
 
 #include "core/Input.h"
+#include "core/Timer.h"
 
 Scene::Scene(float aspectRatio, AssetManager& assetManager) : m_Player(aspectRatio), m_AssetManager(assetManager) {
 }
@@ -12,6 +14,7 @@ void Scene::initialize() {
 }
 
 void Scene::createSponzaModel() {
+    Timer timer;
     Transform t;
     t.position = {0.0f, 0.0f, 0.0f};
     t.scale = {0.1f, 0.1f, 0.1f};
@@ -35,6 +38,7 @@ void Scene::createSponzaModel() {
         renderable.transform = t;
         addRenderable(renderable);
     }
+    std::cout << "Sponza model loaded in " << timer.get_milliseconds() << " ms" << std::endl;
 }
 
 void Scene::update(float deltaTime, const Input& input) {

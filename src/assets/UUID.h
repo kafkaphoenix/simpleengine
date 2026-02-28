@@ -1,17 +1,20 @@
 #pragma once
+#include <cstdint>
 #include <random>
 
 class UUID {
    public:
     UUID() : m_uuid(dis(gen)) {}
     UUID(uint64_t uuid) : m_uuid(uuid) {}
-    operator uint64_t() const { return m_uuid; }
-    bool operator==(uint64_t value) const { return m_uuid == value; }
-    bool operator!=(uint64_t value) const { return m_uuid != value; }
+
+    explicit operator uint64_t() const { return m_uuid; }
+
+    bool operator==(const UUID& other) const { return m_uuid == other.m_uuid; }
+    bool operator!=(const UUID& other) const { return m_uuid != other.m_uuid; }
 
    private:
     static inline std::random_device rd{};
-    static inline std::mt19937_64 gen{rd()};
+    static inline thread_local std::mt19937_64 gen{rd()};
     static inline std::uniform_int_distribution<uint64_t> dis;
 
     uint64_t m_uuid{};

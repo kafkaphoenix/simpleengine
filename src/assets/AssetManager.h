@@ -35,7 +35,6 @@ class AssetManager {
         return getOrLoadAsset<Material>("material_" + name, name, shader, textures, params, state);
     }
 
-    // Remove asset by path
     void removeShader(const std::string& shaderPath) {
         removeAssetByPath("shader_" + shaderPath);
     }
