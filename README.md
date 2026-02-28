@@ -96,7 +96,7 @@ Settings are loaded from config.ini with sections for window, input, camera, and
 ## Potential improvements
 - Better error handling and logging. Using a logging library like spdlog would be a good improvement.
 - More robust asset management with reference counting and unloading/reloading.
-- More complete glTF/glb support (animations, PBR materials, Draco compression, etc).
+- More complete glTF/glb support (animations, PBR materials, Draco compression, etc). This would require updating the material system to support PBR shaders and adding animation support in the renderer and scene. And also update Mesh as right now it only supports static meshes without animations.
 - More flexible renderer with support for multiple passes, post-processing, etc.
 - Adding more complex lighting models, shadows, and post-processing effects.
 - More complete input handling with action mapping and support for gamepads.
