@@ -38,15 +38,26 @@ void Renderer::setBatchSize(size_t maxInstances) {
 }
 
 void Renderer::setupGlState() {
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_LINE_SMOOTH);
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);
+    glEnable(GL_DEPTH_TEST); // For 3D rendering allows that closer objects occlude farther ones
+    glDepthFunc(GL_LESS); // Accept fragment if it is closer to the camera than the former one
+    glEnable(GL_LINE_SMOOTH); // Enable anti-aliasing for lines (wireframe mode) to reduce jagged edges
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    glEnable(GL_CULL_FACE); // Enable back-face culling to improve performance by not rendering faces that are facing away from the camera
+    glCullFace(GL_BACK); // Cull back faces. Disable culling for double-sided materials like water or foliage
+    glFrontFace(GL_CCW); // Define front faces as counter-clockwise winding order
+    glEnable(GL_BLEND); // Enable blending for transparency
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // Says how to blend source and destination colors based on alpha
+    glEnable(GL_POLYGON_OFFSET_FILL); // Enable polygon offset to avoid z-fighting when rendering wireframes on top of filled polygons
+    glPolygonOffset(0.5f, 1.0f); // Adjust these values as needed to reduce z-fighting without causing too much offset
+}
+
+void Renderer::resetGlState() {
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_POLYGON_OFFSET_FILL);
-    glPolygonOffset(0.5f, 1.0f);
+    glDepthMask(GL_TRUE);
+    glEnable(GL_CULL_FACE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glDisable(GL_POLYGON_OFFSET_FILL);
+    glDisable(GL_LINE_SMOOTH);
 }
 
 void Renderer::setupFrameUbo() {
@@ -162,9 +173,7 @@ void Renderer::flush() {
 
     m_Batches.clear();
 
-    glEnable(GL_BLEND);
-    glDepthMask(GL_TRUE);
-    glEnable(GL_CULL_FACE);
+    resetGlState();
 }
 
 void Renderer::updateFrameUbo() {

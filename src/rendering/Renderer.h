@@ -79,6 +79,7 @@ class Renderer {
     void setupFrameUbo();
     void flushBatch(const BatchKey& key, BatchData& batch);
     void updateFrameUbo();
+    void resetGlState();
 
     const Camera* m_Camera = nullptr;
     std::unordered_map<BatchKey, BatchData, BatchKey::Hash> m_Batches;

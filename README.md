@@ -97,3 +97,4 @@ Settings are loaded from config.ini with sections for window, input, camera, and
 - Serialization for saving/loading scenes and assets.
 - Editor mode with real-time scene editing and asset management.
 - Memory and Performance profiling to identify bottlenecks and optimize critical paths. Using a profiler like Tracy would be very helpful for this.
+- Cube map support for skyboxes and reflections.
