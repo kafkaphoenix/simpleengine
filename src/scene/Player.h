@@ -13,14 +13,14 @@ class Player {
     const Camera& getCamera() const { return m_Camera; }
 
    private:
+    void updateMouseLook(const Input& input);
+    void updateKeyboardMovement(float deltaTime, const Input& input);
+    void applyKeyboardStep(float stepSeconds, const Input& input);
+
     Camera m_Camera;
     float m_MouseSmoothAlpha = 0.5f;
     float m_SmoothedDx = 0.0f;
     float m_SmoothedDy = 0.0f;
     float m_MoveAccumulator = 0.0f;
     float m_FixedStep = 1.0f / 120.0f;
-
-    void updateMouseLook(const Input& input);
-    void updateKeyboardMovement(float deltaTime, const Input& input);
-    void applyKeyboardStep(float stepSeconds, const Input& input);
 };

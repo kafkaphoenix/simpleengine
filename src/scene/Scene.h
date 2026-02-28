@@ -2,11 +2,11 @@
 #include <memory>
 #include <vector>
 
-#include "assets/AssetManager.h"
-#include "assets/Model.h"
 #include "Player.h"
 #include "Renderable.h"
 #include "Sky.h"
+#include "assets/AssetManager.h"
+#include "assets/Model.h"
 
 class Input;
 class Scene {
@@ -31,11 +31,9 @@ class Scene {
 
     void update(float deltaTime, const Input& input);
     void initialize();
-    void createSponzaModel();
 
    private:
-    void createModelInstance(const std::string& modelPath, const std::string& shaderPath, const Transform& transform);
-    void createRenderablesFromModel(ModelHandle model, const Transform& transform);
+    void createSponzaModel();
 
     std::vector<Renderable> m_Renderables;
     Player m_Player;

@@ -3,11 +3,11 @@
 #include <unordered_map>
 #include <vector>
 
+#include "Mesh.h"
+#include "UniformBuffer.h"
 #include "assets/Shader.h"
 #include "scene/Camera.h"
 #include "scene/Renderable.h"
-#include "Mesh.h"
-#include "UniformBuffer.h"
 
 struct InstanceData {
     glm::mat4 modelMatrix;
@@ -77,11 +77,12 @@ class Renderer {
    private:
     void setupGlState();
     void setupFrameUbo();
+    void flushBatch(const BatchKey& key, BatchData& batch);
+    void updateFrameUbo();
+
     const Camera* m_Camera = nullptr;
     std::unordered_map<BatchKey, BatchData, BatchKey::Hash> m_Batches;
     size_t m_MaxBatchSize = 1000;
     LightSet m_Lights;
     UniformBuffer m_FrameUbo{0, 0};
-    void flushBatch(const BatchKey& key, BatchData& batch);
-    void updateFrameUbo();
 };

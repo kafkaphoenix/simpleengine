@@ -15,20 +15,11 @@ void Scene::createSponzaModel() {
     Transform t;
     t.position = {0.0f, 0.0f, 0.0f};
     t.scale = {0.1f, 0.1f, 0.1f};
-    ShaderHandle shader = m_AssetManager.loadShader("assets/shaders/basic");
-    createModelInstance("assets/models/sponza/sponza.gltf", shader.get()->getPath(), t);
-}
+    std::string shaderPath = "assets/shaders/basic";
+    std::string modelPath = "assets/models/sponza/sponza.gltf";
+    auto shader = m_AssetManager.getOrLoadShader(shaderPath);
+    auto model = m_AssetManager.getOrLoadModel(modelPath, shaderPath);
 
-void Scene::update(float deltaTime, const Input& input) {
-    m_Player.update(deltaTime, input);
-}
-
-void Scene::createModelInstance(const std::string& modelPath, const std::string& shaderPath, const Transform& transform) {
-    auto model = m_AssetManager.loadModel(modelPath, shaderPath);
-    createRenderablesFromModel(model, transform);
-}
-
-void Scene::createRenderablesFromModel(ModelHandle model, const Transform& transform) {
     auto modelPtr = model.get();
     if (!modelPtr) {
         throw std::runtime_error("Model handle is invalid");
@@ -41,7 +32,11 @@ void Scene::createRenderablesFromModel(ModelHandle model, const Transform& trans
         Renderable renderable;
         renderable.mesh = sub.mesh.get();
         renderable.material = sub.material;
-        renderable.transform = transform;
+        renderable.transform = t;
         addRenderable(renderable);
     }
+}
+
+void Scene::update(float deltaTime, const Input& input) {
+    m_Player.update(deltaTime, input);
 }

@@ -51,13 +51,11 @@ std::vector<TextureHandle> loadGltfTextures(const tinygltf::Model& gltfModel,
             if (!image.uri.empty()) {
                 std::string texturePath = gltfDir + "/" + image.uri;
                 try {
-                    auto existingHandle = assetManager.getTextureHandle(texturePath);
-                    if (existingHandle.isValid()) {
-                        gltfTextures.push_back(existingHandle);
-                    } else {
-                        auto textureHandle = assetManager.loadTexture(texturePath);
-                        gltfTextures.push_back(textureHandle);
+                    auto existingHandle = assetManager.getOrLoadTexture(texturePath);
+                    if (!existingHandle.isValid()) {
+                        throw std::runtime_error("Asset manager failed to load texture");
                     }
+                    gltfTextures.push_back(existingHandle);
                 } catch (const std::exception& e) {
                     throw std::runtime_error("Failed to load GLTF texture " + std::to_string(i) +
                                              " (" + image.uri + "): " + e.what());
@@ -78,7 +76,7 @@ MaterialHandle createDefaultMaterial(const std::string& name,
                                      const ShaderHandle& shader) {
     MaterialTextures defaultTextures;
     MaterialParams defaultParams;
-    return assetManager.createMaterial(name, shader, defaultTextures, defaultParams, RenderState{});
+    return assetManager.getOrLoadMaterial(name, shader, defaultTextures, defaultParams, RenderState{});
 }
 
 std::vector<MaterialHandle> buildMaterials(const tinygltf::Model& gltfModel,
@@ -163,7 +161,7 @@ std::vector<MaterialHandle> buildMaterials(const tinygltf::Model& gltfModel,
         }
 
         std::string name = modelPath + "#mat" + std::to_string(i);
-        gltfMaterials.push_back(assetManager.createMaterial(name, shader, matTextures, params, state));
+        gltfMaterials.push_back(assetManager.getOrLoadMaterial(name, shader, matTextures, params, state));
     }
 
     return gltfMaterials;
@@ -353,8 +351,8 @@ Model::Model(const std::string& gltfPath, const std::string& shaderPath, AssetMa
     std::string gltfDir = getDirectory(gltfPath);
     auto gltfTextures = loadGltfTextures(gltfModel, gltfDir, assetManager);
 
-    ShaderHandle shader = assetManager.loadShader(shaderPath);
-    MaterialHandle defaultMaterial = createDefaultMaterial(m_Path + "#default", assetManager, shader);
+    auto shader = assetManager.getOrLoadShader(shaderPath);
+    auto defaultMaterial = createDefaultMaterial(m_Path + "#default", assetManager, shader);
     auto gltfMaterials = buildMaterials(gltfModel, assetManager, shader, gltfTextures, m_Path);
 
     for (const auto& mesh : gltfModel.meshes) {
@@ -364,7 +362,7 @@ Model::Model(const std::string& gltfPath, const std::string& shaderPath, AssetMa
                 continue;
             }
 
-            MaterialHandle materialHandle = resolveMaterial(primitive, gltfMaterials, defaultMaterial);
+            auto materialHandle = resolveMaterial(primitive, gltfMaterials, defaultMaterial);
             m_SubMeshes.push_back({std::move(meshPtr), materialHandle});
         }
     }

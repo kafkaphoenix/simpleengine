@@ -27,6 +27,8 @@ class Camera {
     void applySettings(const Settings& settings);
 
    private:
+    void updateVectors();
+
     glm::vec3 m_Position;
     glm::vec3 m_Front;
     glm::vec3 m_Up;
@@ -41,6 +43,4 @@ class Camera {
     float m_Fov;
     float m_Near;
     float m_Far;
-
-    void updateVectors();
 };

@@ -1,7 +1,8 @@
 #pragma once
-#include <atomic>
 #include <memory>
+#include <stdexcept>
 #include <string>
+#include <typeindex>
 #include <unordered_map>
 
 #include "Asset.h"
@@ -10,39 +11,96 @@
 #include "Model.h"
 #include "Shader.h"
 #include "Texture.h"
+#include "UUID.h"
 
 class AssetManager {
    public:
-    AssetManager() : m_NextId(1) {}  // Start IDs from 1 (0 means invalid)
+    AssetManager() = default;
     ~AssetManager() = default;
 
+    ShaderHandle getOrLoadShader(const std::string& shaderPath) {
+        return getOrLoadAsset<Shader>("shader_" + shaderPath, shaderPath);
+    }
+    ModelHandle getOrLoadModel(const std::string& gltfPath, const std::string& shaderPath) {
+        return getOrLoadAsset<Model>("model_" + gltfPath, gltfPath, shaderPath, *this);
+    }
+    TextureHandle getOrLoadTexture(const std::string& path) {
+        return getOrLoadAsset<Texture>("texture_" + path, path);
+    }
+    MaterialHandle getOrLoadMaterial(const std::string& name,
+                                     ShaderHandle shader,
+                                     const MaterialTextures& textures,
+                                     const MaterialParams& params,
+                                     const RenderState& state) {
+        return getOrLoadAsset<Material>("material_" + name, name, shader, textures, params, state);
+    }
+
+    // Remove asset by path
+    void removeShader(const std::string& shaderPath) {
+        removeAssetByPath("shader_" + shaderPath);
+    }
+    void removeModel(const std::string& gltfPath) {
+        removeAssetByPath("model_" + gltfPath);
+    }
+    void removeTexture(const std::string& path) {
+        removeAssetByPath("texture_" + path);
+    }
+    void removeMaterial(const std::string& name) {
+        removeAssetByPath("material_" + name);
+    }
+
+    ShaderHandle getShader(UUID id) const { return getAssetById<Shader>(id); }
+    ModelHandle getModel(UUID id) const { return getAssetById<Model>(id); }
+    TextureHandle getTexture(UUID id) const { return getAssetById<Texture>(id); }
+    MaterialHandle getMaterial(UUID id) const { return getAssetById<Material>(id); }
+
+    void clear() {
+        m_Assets.clear();
+        m_PathToId.clear();
+    }
+
+   private:
     template <typename T, typename... Args>
-    AssetHandle<T> loadAsset(const std::string& path, Args&&... args);
+    AssetHandle<T> getOrLoadAsset(const std::string& path, Args&&... args) {
+        auto it = m_PathToId.find(path);
+        if (it != m_PathToId.end()) {
+            return AssetHandle<T>(this, it->second);
+        }
+        UUID id = UUID();
+        auto asset = std::make_shared<T>(std::forward<Args>(args)...);
+        m_Assets[id] = asset;
+        m_PathToId[path] = id;
+        return AssetHandle<T>(this, id);
+    }
 
-    ShaderHandle loadShader(const std::string& shaderPath);
-    ModelHandle loadModel(const std::string& gltfPath, const std::string& shaderPath);
-    TextureHandle loadTexture(const std::string& path);
-    MaterialHandle createMaterial(const std::string& name,
-                                  ShaderHandle shader,
-                                  const MaterialTextures& textures,
-                                  const MaterialParams& params,
-                                  const RenderState& state);
+    void removeAssetByPath(const std::string& path) {
+        auto it = m_PathToId.find(path);
+        if (it != m_PathToId.end()) {
+            m_Assets.erase(it->second);
+            m_PathToId.erase(it);
+        }
+    }
 
-    TextureHandle getTextureHandle(const std::string& path) const;
-
-    void clear();
-
-   private:
     template <typename T>
-    std::shared_ptr<T> getAsset(uint64_t id) const;
+    AssetHandle<T> getAssetById(UUID id) const {
+        auto it = m_Assets.find(id);
+        if (it != m_Assets.end()) {
+            return AssetHandle<T>(const_cast<AssetManager*>(this), id);
+        }
+        return AssetHandle<T>();  // invalid
+    }
 
-   private:
-    std::unordered_map<uint64_t, std::shared_ptr<Asset>> m_Assets;
-    std::atomic<uint64_t> m_NextId;
+    template <typename T>
+    std::shared_ptr<T> getAssetPtr(UUID id) const {
+        auto it = m_Assets.find(id);
+        if (it != m_Assets.end()) {
+            return std::dynamic_pointer_cast<T>(it->second);
+        }
+        return nullptr;
+    }
 
-    std::unordered_map<std::string, uint64_t> m_TexturePathToId;
-
-    uint64_t generateId() { return m_NextId.fetch_add(1); }
+    std::unordered_map<UUID, std::shared_ptr<Asset>> m_Assets;
+    std::unordered_map<std::string, UUID> m_PathToId;
 
     template <typename T>
     friend class AssetHandle;

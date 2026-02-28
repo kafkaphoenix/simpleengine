@@ -39,6 +39,7 @@ class Window {
     void setupCallbacks();
     void setupInitialFramebuffer(int width, int height);
     void setupInputMode();
+
     GLFWwindow* m_Window;
     EventBus* m_EventBus = nullptr;
     bool m_IsFullscreen = false;

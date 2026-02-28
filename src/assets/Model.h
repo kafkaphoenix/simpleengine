@@ -4,9 +4,9 @@
 #include <string>
 #include <vector>
 
-#include "rendering/Mesh.h"
 #include "Asset.h"
 #include "Material.h"
+#include "rendering/Mesh.h"
 
 class AssetManager;
 
@@ -22,7 +22,7 @@ class Model : public Asset {
     const std::string& getPath() const override { return m_Path; }
 
    private:
-    std::vector<SubMesh> m_SubMeshes;
-
     std::string getDirectory(const std::string& filepath) const;
+
+    std::vector<SubMesh> m_SubMeshes;
 };

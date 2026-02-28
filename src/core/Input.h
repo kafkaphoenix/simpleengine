@@ -41,6 +41,9 @@ class Input {
         Down,
         Released
     };
+    void advanceState(ButtonState& state);
+    bool isValidKey(int key) const;
+    bool isValidMouseButton(int button) const;
 
     static constexpr int KeyCount = GLFW_KEY_LAST + 1;
     static constexpr int MouseButtonCount = GLFW_MOUSE_BUTTON_LAST + 1;
@@ -56,8 +59,4 @@ class Input {
     double m_ScrollY = 0.0;
 
     bool m_InitializedMouse = false;
-
-    void advanceState(ButtonState& state);
-    bool isValidKey(int key) const;
-    bool isValidMouseButton(int button) const;
 };
