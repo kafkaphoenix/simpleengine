@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
+#include <vector>
 
 namespace {
 int calcMipLevels(int width, int height) {
@@ -75,6 +76,55 @@ Texture::Texture(const std::string& path, bool flipVertically)
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
     stbi_image_free(data);
+}
+
+Texture::Texture(const uint8_t* data, int width, int height, int channels)
+    : Asset("<memory>") {
+    // Flip image vertically (GLB embedded images are stored top-left, OpenGL expects bottom-left)
+    size_t rowSize = width * channels;
+    std::vector<uint8_t> flipped(data, data + rowSize * height);
+    for (int y = 0; y < height / 2; ++y) {
+        uint8_t* row1 = &flipped[y * rowSize];
+        uint8_t* row2 = &flipped[(height - 1 - y) * rowSize];
+        for (size_t x = 0; x < rowSize; ++x) std::swap(row1[x], row2[x]);
+    }
+
+    glCreateTextures(GL_TEXTURE_2D, 1, &m_ID);
+    glTextureParameteri(m_ID, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTextureParameteri(m_ID, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTextureParameteri(m_ID, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTextureParameteri(m_ID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    applyAnisotropy(m_ID);
+
+    GLenum internalFormat, format;
+    if (channels == 4) {
+        internalFormat = GL_RGBA8;
+        format = GL_RGBA;
+    } else if (channels == 3) {
+        internalFormat = GL_RGB8;
+        format = GL_RGB;
+        // Fix pixel alignment for RGB textures
+        if (3 * width % 4 == 0) {
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+        } else {
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        }
+    } else if (channels == 2) {
+        internalFormat = GL_RG8;
+        format = GL_RG;
+    } else if (channels == 1) {
+        internalFormat = GL_R8;
+        format = GL_RED;
+    } else
+        throw std::runtime_error("Unsupported texture format from memory");
+
+    int mipLevels = calcMipLevels(width, height);
+    glTextureStorage2D(m_ID, mipLevels, internalFormat, width, height);
+    glTextureSubImage2D(m_ID, 0, 0, 0, width, height, format, GL_UNSIGNED_BYTE, flipped.data());
+    glGenerateTextureMipmap(m_ID);
+
+    // Reset alignment to default
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 }
 
 Texture::~Texture() {

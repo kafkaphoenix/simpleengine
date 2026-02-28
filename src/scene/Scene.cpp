@@ -19,7 +19,8 @@ void Scene::createSponzaModel() {
     t.position = {0.0f, 0.0f, 0.0f};
     t.scale = {0.1f, 0.1f, 0.1f};
     std::string shaderPath = "assets/shaders/basic";
-    std::string modelPath = "assets/models/sponza/sponza.gltf";
+    std::string modelPath = "assets/models/sponza_glb/sponza.glb";
+    // std::string modelPath = "assets/models/sponza/sponza.gltf";
     auto shader = m_AssetManager.getOrLoadShader(shaderPath);
     auto model = m_AssetManager.getOrLoadModel(modelPath, shaderPath);
 

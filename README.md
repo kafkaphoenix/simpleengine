@@ -3,7 +3,18 @@
 Modern C++ OpenGL engine that can be used as a starting point for more complex engines or games. It focuses on clarity and a small feature set while keeping modern practices.
 
 ## Demo Sponza scene
-![Sponza screenshot](docs/img/demo.png)
+Both GLTF and GLB versions of the Sponza model are included in the `assets/` folder.
+
+| Format | Load Time | Size | Textures |
+|--------|-----------|------|----------|
+| GLTF | ~4–5s | 247MB | External files |
+| GLB | ~2–4s | 194MB | Embedded |
+
+![Sponza screenshot](docs/img/sponza_gltf.png)
+*Sponza GLTF model with external textures*
+
+![Sponza screenshot](docs/img/sponza_glb.png)
+*Sponza GLB model with embedded textures*
 
 ## Build and run
 Dependency management is handled with vcpkg. Make sure to install the required libraries.
@@ -17,7 +28,7 @@ Dependency management is handled with vcpkg. Make sure to install the required l
 - Frame UBO for per-frame camera and light data.
 - Directional sun + ambient + optional point lights.
 - Instanced rendering, CPU batching by mesh/material with frustum culling.
-- glTF model loading with tinygltf.
+- glTF/glb model loading with tinygltf.
 - Simple camera controller with mouse look and WASD movement.
 - Wireframe toggle and fullscreen mode.
 - Basic stats display with configurable update interval.
@@ -63,7 +74,7 @@ Dependency management is handled with vcpkg. Make sure to install the required l
 - Asset: Minimal base class with a path.
 - AssetHandle: Lightweight, type-safe references to assets.
 - AssetManager: Loads and caches shaders, textures, models, and materials.
-- Model: Loads glTF into meshes and materials.
+- Model: Loads glTF/glb into meshes and materials.
 
 ### Scene
 - Scene: Owns renderables and updates game logic.
@@ -85,7 +96,7 @@ Settings are loaded from config.ini with sections for window, input, camera, and
 ## Potential improvements
 - Better error handling and logging. Using a logging library like spdlog would be a good improvement.
 - More robust asset management with reference counting and unloading/reloading.
-- More complete glTF support (animations, PBR materials, etc).
+- More complete glTF/glb support (animations, PBR materials, Draco compression, etc).
 - More flexible renderer with support for multiple passes, post-processing, etc.
 - Adding more complex lighting models, shadows, and post-processing effects.
 - More complete input handling with action mapping and support for gamepads.

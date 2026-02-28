@@ -27,6 +27,19 @@ class AssetManager {
     TextureHandle getOrLoadTexture(const std::string& path) {
         return getOrLoadAsset<Texture>("texture_" + path, path);
     }
+    TextureHandle getOrLoadTextureFromMemory(const uint8_t* data, int width, int height, int channels) {
+        std::string key = "texture_<memory>_" + std::to_string(reinterpret_cast<uintptr_t>(data));
+        auto it = m_PathToId.find(key);
+        if (it != m_PathToId.end()) {
+            return TextureHandle(this, it->second);
+        }
+
+        UUID id = UUID();
+        auto tex = std::make_shared<Texture>(data, width, height, channels);
+        m_Assets[id] = tex;
+        m_PathToId[key] = id;
+        return TextureHandle(this, id);
+    }
     MaterialHandle getOrLoadMaterial(const std::string& name,
                                      ShaderHandle shader,
                                      const MaterialTextures& textures,

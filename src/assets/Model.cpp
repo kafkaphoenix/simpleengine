@@ -19,10 +19,11 @@ tinygltf::Model loadGltfModel(const std::string& gltfPath) {
     tinygltf::TinyGLTF loader;
     std::string err;
     std::string warn;
+    bool isBinary = gltfPath.size() >= 4 &&
+                    gltfPath.substr(gltfPath.size() - 4) == ".glb";
 
-    bool ret = (gltfPath.find(".glb") != std::string::npos)
-                   ? loader.LoadBinaryFromFile(&gltfModel, &err, &warn, gltfPath)
-                   : loader.LoadASCIIFromFile(&gltfModel, &err, &warn, gltfPath);
+    bool ret = isBinary ? loader.LoadBinaryFromFile(&gltfModel, &err, &warn, gltfPath)
+                        : loader.LoadASCIIFromFile(&gltfModel, &err, &warn, gltfPath);
 
     if (!ret) throw std::runtime_error("Failed to load GLTF: " + err);
     if (!warn.empty()) std::cout << "GLTF Warning: " << warn << std::endl;
@@ -41,13 +42,22 @@ std::vector<TextureHandle> loadGltfTextures(const tinygltf::Model& gltfModel,
             throw std::runtime_error("Invalid texture source: " + std::to_string(texture.source));
 
         const auto& image = gltfModel.images[texture.source];
-        if (image.uri.empty())
-            throw std::runtime_error("Embedded textures not supported: " + std::to_string(texture.source));
+        TextureHandle handle;
 
-        std::string path = gltfDir + "/" + image.uri;
-        auto handle = assetManager.getOrLoadTexture(path);
+        if (!image.uri.empty()) {
+            // External file
+            std::string path = gltfDir + "/" + image.uri;
+            handle = assetManager.getOrLoadTexture(path);
+        } else if (!image.image.empty()) {
+            // Embedded texture
+            handle = assetManager.getOrLoadTextureFromMemory(
+                image.image.data(), image.width, image.height, image.component);
+        } else {
+            throw std::runtime_error("Texture has no URI or embedded image");
+        }
+
         if (!handle.isValid())
-            throw std::runtime_error("Failed to load texture: " + path);
+            throw std::runtime_error("Failed to load texture: " + (image.uri.empty() ? "embedded" : image.uri));
 
         gltfTextures.push_back(handle);
     }
@@ -129,29 +139,72 @@ std::vector<unsigned int> readIndices(const tinygltf::Model& gltfModel,
     }
 
     const auto& accessor = gltfModel.accessors[primitive.indices];
+    if (accessor.bufferView < 0 || accessor.bufferView >= static_cast<int>(gltfModel.bufferViews.size()))
+        throw std::runtime_error("Invalid bufferView for indices");
     const auto& bufferView = gltfModel.bufferViews[accessor.bufferView];
+    if (bufferView.buffer < 0 || bufferView.buffer >= static_cast<int>(gltfModel.buffers.size()))
+        throw std::runtime_error("Invalid buffer for indices");
     const auto& buffer = gltfModel.buffers[bufferView.buffer];
 
     indices.reserve(accessor.count);
+    size_t stride = bufferView.byteStride > 0 ? bufferView.byteStride : 0;
+    size_t elemSize = 0;
     switch (accessor.componentType) {
-        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT: {
-            const uint16_t* data = reinterpret_cast<const uint16_t*>(&buffer.data[bufferView.byteOffset + accessor.byteOffset]);
-            for (size_t i = 0; i < accessor.count; ++i) indices.push_back(data[i]);
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
+            elemSize = sizeof(uint16_t);
             break;
-        }
-        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT: {
-            const uint32_t* data = reinterpret_cast<const uint32_t*>(&buffer.data[bufferView.byteOffset + accessor.byteOffset]);
-            indices.assign(data, data + accessor.count);
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
+            elemSize = sizeof(uint32_t);
             break;
-        }
-        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE: {
-            const uint8_t* data = reinterpret_cast<const uint8_t*>(&buffer.data[bufferView.byteOffset + accessor.byteOffset]);
-            for (size_t i = 0; i < accessor.count; ++i) indices.push_back(data[i]);
+        case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:
+            elemSize = sizeof(uint8_t);
             break;
+        default:
+            throw std::runtime_error("Unsupported index component type");
+    }
+    stride = stride ? stride : elemSize;
+    const size_t baseOffset = bufferView.byteOffset + accessor.byteOffset;
+    for (size_t i = 0; i < accessor.count; ++i) {
+        size_t offset = baseOffset + i * stride;
+        switch (accessor.componentType) {
+            case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT: {
+                const uint16_t* elem = reinterpret_cast<const uint16_t*>(&buffer.data[offset]);
+                indices.push_back(*elem);
+                break;
+            }
+            case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT: {
+                const uint32_t* elem = reinterpret_cast<const uint32_t*>(&buffer.data[offset]);
+                indices.push_back(*elem);
+                break;
+            }
+            case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE: {
+                const uint8_t* elem = reinterpret_cast<const uint8_t*>(&buffer.data[offset]);
+                indices.push_back(*elem);
+                break;
+            }
         }
     }
-
     return indices;
+}
+
+// Reads a strided float accessor into a flat vector.
+// Necessary because GLB exporters (e.g. Blender) often produce interleaved
+// vertex buffers with a non-zero byteStride, which a raw pointer cast would misread.
+void readStridedVec(const tinygltf::Model& gltfModel, const tinygltf::Accessor& acc, int components, std::vector<float>& out) {
+    if (acc.bufferView < 0 || acc.bufferView >= static_cast<int>(gltfModel.bufferViews.size()))
+        throw std::runtime_error("Invalid bufferView for accessor");
+    const auto& bv = gltfModel.bufferViews[acc.bufferView];
+    if (bv.buffer < 0 || bv.buffer >= static_cast<int>(gltfModel.buffers.size()))
+        throw std::runtime_error("Invalid buffer for accessor");
+    const auto& buf = gltfModel.buffers[bv.buffer];
+    const uint8_t* base = buf.data.data() + bv.byteOffset + acc.byteOffset;
+    size_t stride = bv.byteStride > 0 ? bv.byteStride : components * sizeof(float);
+    out.reserve(acc.count * components);
+    for (size_t i = 0; i < acc.count; ++i) {
+        const float* elem = reinterpret_cast<const float*>(base + i * stride);
+        for (int c = 0; c < components; ++c)
+            out.push_back(elem[c]);
+    }
 }
 
 std::unique_ptr<Mesh> buildMeshFromPrimitive(const tinygltf::Model& gltfModel,
@@ -162,38 +215,36 @@ std::unique_ptr<Mesh> buildMeshFromPrimitive(const tinygltf::Model& gltfModel,
     const auto& posAccessor = gltfModel.accessors[posIt->second];
     if (posAccessor.componentType != TINYGLTF_COMPONENT_TYPE_FLOAT || posAccessor.type != TINYGLTF_TYPE_VEC3)
         return nullptr;
-
-    const auto& posBufferView = gltfModel.bufferViews[posAccessor.bufferView];
-    const auto& posBuffer = gltfModel.buffers[posBufferView.buffer];
-    const float* posData = reinterpret_cast<const float*>(&posBuffer.data[posBufferView.byteOffset + posAccessor.byteOffset]);
+    if (posAccessor.bufferView < 0 || posAccessor.bufferView >= static_cast<int>(gltfModel.bufferViews.size()))
+        return nullptr;
     const size_t vertexCount = posAccessor.count;
 
+    std::vector<float> positions;
+    readStridedVec(gltfModel, posAccessor, 3, positions);
     std::vector<float> normals;
     if (primitive.attributes.find("NORMAL") != primitive.attributes.end()) {
         const auto& nAccessor = gltfModel.accessors[primitive.attributes.at("NORMAL")];
-        const auto& nBufferView = gltfModel.bufferViews[nAccessor.bufferView];
-        const auto& nBuffer = gltfModel.buffers[nBufferView.buffer];
-        const float* nData = reinterpret_cast<const float*>(&nBuffer.data[nBufferView.byteOffset + nAccessor.byteOffset]);
-        normals.assign(nData, nData + nAccessor.count * 3);
+        readStridedVec(gltfModel, nAccessor, 3, normals);
     }
-
     std::vector<float> texCoords;
     if (primitive.attributes.find("TEXCOORD_0") != primitive.attributes.end()) {
         const auto& tAccessor = gltfModel.accessors[primitive.attributes.at("TEXCOORD_0")];
-        const auto& tBufferView = gltfModel.bufferViews[tAccessor.bufferView];
-        const auto& tBuffer = gltfModel.buffers[tBufferView.buffer];
-        const float* tData = reinterpret_cast<const float*>(&tBuffer.data[tBufferView.byteOffset + tAccessor.byteOffset]);
-        texCoords.assign(tData, tData + tAccessor.count * 2);
+        readStridedVec(gltfModel, tAccessor, 2, texCoords);
     }
 
     std::vector<float> vertices;
     vertices.reserve(vertexCount * 8);  // 3 pos + 3 normal + 2 tex
 
     AABB aabb;
-    if (vertexCount > 0) aabb.min = aabb.max = glm::vec3(posData[0], posData[1], posData[2]);
+    if (vertexCount > 0 && positions.size() >= 3) {
+        aabb.min = aabb.max = glm::vec3(positions[0], positions[1], positions[2]);
+    }
 
     for (size_t i = 0; i < vertexCount; ++i) {
-        glm::vec3 pos(posData[i * 3], posData[i * 3 + 1], posData[i * 3 + 2]);
+        // Position
+        glm::vec3 pos(0.0f);
+        if (i * 3 + 2 < positions.size())
+            pos = glm::vec3(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]);
         vertices.push_back(pos.x);
         vertices.push_back(pos.y);
         vertices.push_back(pos.z);
@@ -203,7 +254,8 @@ std::unique_ptr<Mesh> buildMeshFromPrimitive(const tinygltf::Model& gltfModel,
             aabb.max = glm::max(aabb.max, pos);
         }
 
-        if (!normals.empty() && i * 3 + 2 < normals.size()) {
+        // Normal
+        if (i * 3 + 2 < normals.size()) {
             vertices.push_back(normals[i * 3]);
             vertices.push_back(normals[i * 3 + 1]);
             vertices.push_back(normals[i * 3 + 2]);
@@ -213,7 +265,8 @@ std::unique_ptr<Mesh> buildMeshFromPrimitive(const tinygltf::Model& gltfModel,
             vertices.push_back(0.0f);
         }
 
-        if (!texCoords.empty() && i * 2 + 1 < texCoords.size()) {
+        // TexCoord
+        if (i * 2 + 1 < texCoords.size()) {
             vertices.push_back(texCoords[i * 2]);
             vertices.push_back(1.0f - texCoords[i * 2 + 1]);
         } else {
@@ -240,25 +293,30 @@ MaterialHandle resolveMaterial(const tinygltf::Primitive& primitive,
 
 Model::Model(const std::string& gltfPath, const std::string& shaderPath, AssetManager& assetManager)
     : Asset(gltfPath) {
-    tinygltf::Model gltfModel = loadGltfModel(gltfPath);
-    std::string gltfDir = getDirectory(gltfPath);
+    try {
+        tinygltf::Model gltfModel = loadGltfModel(gltfPath);
+        std::string gltfDir = getDirectory(gltfPath);
 
-    auto gltfTextures = loadGltfTextures(gltfModel, gltfDir, assetManager);
-    auto shader = assetManager.getOrLoadShader(shaderPath);
-    auto defaultMaterial = createDefaultMaterial(m_Path + "#default", assetManager, shader);
-    auto gltfMaterials = buildMaterials(gltfModel, assetManager, shader, gltfTextures);
+        auto gltfTextures = loadGltfTextures(gltfModel, gltfDir, assetManager);
+        auto shader = assetManager.getOrLoadShader(shaderPath);
+        auto defaultMaterial = createDefaultMaterial(m_Path + "#default", assetManager, shader);
+        auto gltfMaterials = buildMaterials(gltfModel, assetManager, shader, gltfTextures);
 
-    size_t totalPrimitives = 0;
-    for (const auto& mesh : gltfModel.meshes) totalPrimitives += mesh.primitives.size();
-    m_SubMeshes.reserve(totalPrimitives);
+        size_t totalPrimitives = 0;
+        for (const auto& mesh : gltfModel.meshes) totalPrimitives += mesh.primitives.size();
+        m_SubMeshes.reserve(totalPrimitives);
 
-    for (const auto& mesh : gltfModel.meshes) {
-        for (const auto& primitive : mesh.primitives) {
-            auto meshPtr = buildMeshFromPrimitive(gltfModel, primitive);
-            if (!meshPtr) continue;
-            auto mat = resolveMaterial(primitive, gltfMaterials, defaultMaterial);
-            m_SubMeshes.push_back({std::move(meshPtr), mat});
+        for (const auto& mesh : gltfModel.meshes) {
+            for (const auto& primitive : mesh.primitives) {
+                auto meshPtr = buildMeshFromPrimitive(gltfModel, primitive);
+                if (!meshPtr) continue;
+                auto mat = resolveMaterial(primitive, gltfMaterials, defaultMaterial);
+                m_SubMeshes.push_back({std::move(meshPtr), mat});
+            }
         }
+    } catch (const std::exception& e) {
+        std::cerr << "Error loading model '" << gltfPath << "': " << e.what() << std::endl;
+        throw;
     }
 }
 
