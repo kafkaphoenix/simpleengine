@@ -111,6 +111,7 @@ class AssetManager {
         return nullptr;
     }
 
+    // No multithreading support, so no need for mutexes. If you add multithreading, you'll need to add mutexes to protect these maps.
     std::unordered_map<UUID, std::shared_ptr<Asset>> m_Assets;
     std::unordered_map<std::string, UUID> m_PathToId;
 

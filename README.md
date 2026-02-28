@@ -103,9 +103,12 @@ Settings are loaded from config.ini with sections for window, input, camera, and
 - More complete scene management with entities, components, and systems.
 - Debug rendering and tools for inspecting the scene and assets. Using a library like ImGui would be great for this.
 - UI system for in-game menus, HUD, etc. Using RmlUI or similar would be a good option.
-- Multithreading for asset loading and potentially rendering.
+- Multithreading for asset loading(it requires mutexes for their maps) and potentially rendering (if using Vulkan as OpenGL is not thread-friendly).
 - Using Vulkan instead of OpenGL for better performance and modern features.
 - Serialization for saving/loading scenes and assets.
 - Editor mode with real-time scene editing and asset management.
 - Memory and Performance profiling to identify bottlenecks and optimize critical paths. Using a profiler like Tracy would be very helpful for this.
 - Cube map support for skyboxes and reflections.
+- Support different uniform variables for different shaders. Right now the uniform variables is set up in the renderer flushBatch method. For example for water it would need different uniform variables for the water shader. It could be done by either:
+    1. Add a parameter to flushBatch to specify which shader to use, and set the appropriate uniforms based on that.
+    2. Create a separate flushBatch method for water that sets the water-specific uniforms.

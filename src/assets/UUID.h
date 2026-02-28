@@ -14,6 +14,7 @@ class UUID {
 
    private:
     static inline std::random_device rd{};
+    // Use thread_local to ensure different sequences in different threads.
     static inline thread_local std::mt19937_64 gen{rd()};
     static inline std::uniform_int_distribution<uint64_t> dis;
 
