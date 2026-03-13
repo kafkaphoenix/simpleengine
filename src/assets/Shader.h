@@ -30,11 +30,12 @@ class Shader : public Asset {
     void setBool(std::string_view name, bool value);
 
     std::string_view getPath() const override { return m_Path; }
+    std::uint32_t getID() const { return m_ID; }
 
    private:
     int getUniformLocation(std::string_view name);
 
-    unsigned int m_ID;
+    std::uint32_t m_ID;
     std::string m_Path;
     std::unordered_map<std::string, int, TransparentStringHash, std::equal_to<>> m_UniformLocations;
 };

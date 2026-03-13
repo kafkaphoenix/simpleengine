@@ -1,10 +1,14 @@
 #pragma once
+
 #include <glm/glm.hpp>
+#include <optional>
 #include <unordered_map>
 #include <vector>
 
+#include "Frustum.h"
 #include "Mesh.h"
 #include "UniformBuffer.h"
+#include "assets/Material.h"
 #include "assets/Shader.h"
 #include "scene/Camera.h"
 #include "scene/Renderable.h"
@@ -16,8 +20,8 @@ class Scene;
 namespace se::render {
 
 struct InstanceData {
-    glm::mat4 modelMatrix;
-    glm::mat3 normalMatrix;
+    glm::mat4 modelMatrix;   // locations 3-6  (64 bytes)
+    glm::mat3 normalMatrix;  // locations 7-9  (36 bytes)
 };
 
 struct BatchKey {
@@ -26,20 +30,20 @@ struct BatchKey {
 
     struct Hash {
         size_t operator()(const BatchKey& key) const {
-            size_t h1 = std::hash<uintptr_t>{}(reinterpret_cast<uintptr_t>(key.mesh));
-            size_t h2 = std::hash<uintptr_t>{}(reinterpret_cast<uintptr_t>(key.material));
+            size_t h1 = std::hash<Mesh*>{}(key.mesh);
+            size_t h2 = std::hash<se::assets::Material*>{}(key.material);
             return h1 ^ (h2 << 1);
         }
     };
 
     bool operator==(const BatchKey& other) const {
-        return mesh == other.mesh &&
-               material == other.material;
+        return mesh == other.mesh && material == other.material;
     }
 };
 
 struct BatchData {
     std::vector<InstanceData> instances;
+    glm::vec3 centerSum{0.0f};
 };
 
 class Renderer {
@@ -58,10 +62,10 @@ class Renderer {
         float ambientStrength = 0.2f;
         std::vector<PointLightData> pointLights;
     };
+
     Renderer();
 
     void render(const se::scene::Scene& scene);
-
     void setCamera(const se::scene::Camera& camera) { m_Camera = &camera; }
     void clear();
     void submit(const se::scene::Renderable& renderable);
@@ -74,27 +78,35 @@ class Renderer {
     struct Stats {
         unsigned int drawCalls = 0;
         unsigned int triangles = 0;
-
-        void reset() {
-            drawCalls = triangles = 0;
-        }
+        void reset() { drawCalls = triangles = 0; }
     } m_Stats;
 
     const Stats& getStats() const { return m_Stats; }
 
    private:
+    struct TransparentDraw {
+        float distance;
+        BatchKey key;
+        BatchData* batch;
+    };
+
     void setupGlState();
     void setupFrameUbo();
     void flushBatch(const BatchKey& key, BatchData& batch);
     void updateFrameUbo();
     void resetGlState();
     void applyWireframeState();
+    void clearBatches();
+    std::vector<TransparentDraw> getSortedTransparentDraws();
 
     const se::scene::Camera* m_Camera = nullptr;
-    std::unordered_map<BatchKey, BatchData, BatchKey::Hash> m_Batches;
+    std::unordered_map<BatchKey, BatchData, BatchKey::Hash> m_OpaqueBatches;
+    std::unordered_map<BatchKey, BatchData, BatchKey::Hash> m_TransparentBatches;
     size_t m_MaxBatchSize = 1000;
     LightSet m_Lights;
-    UniformBuffer m_FrameUbo{0, 0};
+    // std::optional avoids constructing a real 0-size GL buffer object at member init
+    std::optional<UniformBuffer> m_FrameUbo;
+    Frustum m_Frustum{};
     bool m_Wireframe = false;
 };
 

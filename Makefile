@@ -43,7 +43,11 @@ build: ## Build project
 
 .PHONY: run
 run: ## Run the project
+ifeq ($(OS),Windows_NT)
+	pushd $(CURDIR) >nul && $(EXE) && popd >nul
+else
 	./$(EXE) && cd -
+endif
 
 .PHONY: clean
 clean: ## Remove build directory

@@ -23,9 +23,10 @@ class Texture : public Asset {
     Texture& operator=(Texture&&) = delete;
 
     std::string_view getPath() const override { return m_Path; }
+    std::uint32_t getID() const { return m_ID; }
 
    private:
-    unsigned int m_ID;
+    std::uint32_t m_ID;
 };
 
 }  // namespace se::assets

@@ -20,6 +20,7 @@ class Camera {
     void processKeyboard(bool forward, bool backward, bool left, bool right, bool up, bool down, float deltaTime);
 
     glm::mat4 getViewProjection() const;
+    glm::vec3 getPosition() const { return m_Position; }
     void setAspect(float aspect) { m_Aspect = aspect; }
     void setPosition(const glm::vec3& position) { m_Position = position; }
     void setMoveSpeed(float speed);

@@ -72,11 +72,10 @@ Shader::Shader(std::string shaderPath)
     glLinkProgram(m_ID);
     checkProgramLinking(m_ID);
 
-#ifdef GL_KHR_debug
+    // Set the program's debug label to the shader path for easier identification in graphics debuggers.
     if (glad_glObjectLabel != nullptr) {
         glad_glObjectLabel(GL_PROGRAM, m_ID, static_cast<GLsizei>(m_Path.size()), m_Path.c_str());
     }
-#endif
 
     glDeleteShader(vs);
     glDeleteShader(fs);

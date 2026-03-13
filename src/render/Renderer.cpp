@@ -3,8 +3,10 @@
 #include <glad/glad.h>
 
 #include <algorithm>
+#include <cassert>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
+#include <glm/gtx/norm.hpp>
 #include <stdexcept>
 
 #include "Frustum.h"
@@ -14,7 +16,8 @@
 namespace se::render {
 
 namespace {
-struct PointLightUbo {
+
+struct PointLightGpuData {
     glm::vec4 positionRange;
     glm::vec4 colorIntensity;
 };
@@ -25,9 +28,10 @@ struct FrameUbo {
     glm::vec4 sunColor;
     glm::vec4 ambient;
     glm::vec4 lightCounts;
-    PointLightUbo pointLights[4];
+    PointLightGpuData pointLights[4];
 };
-}
+
+}  // namespace
 
 Renderer::Renderer() {
     setupGlState();
@@ -36,27 +40,35 @@ Renderer::Renderer() {
 }
 
 void Renderer::render(const se::scene::Scene& scene) {
+    m_Stats.reset();
+
+    if (!m_Camera)
+        throw std::runtime_error("Renderer error: No camera set for rendering!");
+
+    m_Frustum = extractFrustum(m_Camera->getViewProjection());
+
     setLights(scene.buildLightSet());
     clear();
-    for (const auto& renderable : scene.getRenderables()) {
+    for (const auto& renderable : scene.getRenderables())
         submit(renderable);
-    }
     flush();
 }
 
 void Renderer::setBatchSize(size_t maxInstances) {
+    assert(m_OpaqueBatches.empty() && m_TransparentBatches.empty() &&
+           "setBatchSize called mid-frame with live batches");
     m_MaxBatchSize = maxInstances;
     Mesh::setDefaultInstanceCapacityBytes(m_MaxBatchSize * sizeof(InstanceData));
 }
 
 void Renderer::setupGlState() {
-    glEnable(GL_DEPTH_TEST);                            // For 3D rendering allows that closer objects occlude farther ones
-    glDepthFunc(GL_LESS);                               // Accept fragment if it is closer to the camera than the former one
-    glEnable(GL_CULL_FACE);                             // Enable back-face culling to improve performance by not rendering faces that are facing away from the camera
-    glCullFace(GL_BACK);                                // Cull back faces. Disable culling for double-sided materials like water or foliage
-    glFrontFace(GL_CCW);                                // Define front faces as counter-clockwise winding order
-    glEnable(GL_BLEND);                                 // Enable blending for transparency
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  // Says how to blend source and destination colors based on alpha
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void Renderer::resetGlState() {
@@ -69,10 +81,10 @@ void Renderer::resetGlState() {
 void Renderer::applyWireframeState() {
     glPolygonMode(GL_FRONT_AND_BACK, m_Wireframe ? GL_LINE : GL_FILL);
     if (m_Wireframe) {
-        glEnable(GL_LINE_SMOOTH);                // Enable line smoothing for better visual quality in wireframe mode
-        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);  // Set line smoothing hint to nicest for best quality
-        glEnable(GL_POLYGON_OFFSET_FILL);        // Enable polygon offset to reduce z-fighting in wireframe mode
-        glPolygonOffset(0.5f, 1.0f);             // Set polygon offset factors to push wireframe slightly back to prevent z-fighting with filled polygons
+        glEnable(GL_LINE_SMOOTH);
+        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+        glEnable(GL_POLYGON_OFFSET_FILL);
+        glPolygonOffset(0.5f, 1.0f);
     } else {
         glDisable(GL_POLYGON_OFFSET_FILL);
         glDisable(GL_LINE_SMOOTH);
@@ -80,7 +92,7 @@ void Renderer::applyWireframeState() {
 }
 
 void Renderer::setupFrameUbo() {
-    m_FrameUbo = UniformBuffer(sizeof(FrameUbo), 0);
+    m_FrameUbo.emplace(sizeof(FrameUbo), 0);
 }
 
 void Renderer::clear() {
@@ -89,105 +101,109 @@ void Renderer::clear() {
 }
 
 void Renderer::submit(const se::scene::Renderable& renderable) {
-    if (!renderable.mesh) {
+    if (!renderable.mesh)
         throw std::runtime_error("Renderable missing mesh");
-    }
 
     auto materialPtr = renderable.material.get();
-    if (!materialPtr) {
+    if (!materialPtr)
         throw std::runtime_error("Renderable missing material");
-    }
-
-    if (!m_Camera) {
-        throw std::runtime_error("Renderer error: No camera set for rendering!");
-    }
 
     glm::mat4 modelMatrix = renderable.transform.getMatrix();
-    Frustum frustum = extractFrustum(m_Camera->getViewProjection());
-    const AABB& aabb = renderable.mesh->getAABB();
-    if (!frustumIntersectsAABB(frustum, aabb, modelMatrix)) {
-        return;  // Culled
-    }
 
-    BatchKey key{
-        renderable.mesh,
-        materialPtr.get()};
+    const AABB& aabb = renderable.mesh->getAABB();
+    if (!frustumIntersectsAABB(m_Frustum, aabb, modelMatrix)) return;
+
+    const auto& state = materialPtr->getState();
+    BatchKey key{renderable.mesh, materialPtr.get()};
 
     InstanceData data;
     data.modelMatrix = modelMatrix;
-    glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(data.modelMatrix)));
-    data.normalMatrix = normalMatrix;
+    data.normalMatrix = glm::transpose(glm::inverse(glm::mat3(modelMatrix)));
 
-    auto& batch = m_Batches[key];
+    auto& map = state.blend ? m_TransparentBatches : m_OpaqueBatches;
+    auto& batch = map[key];
     batch.instances.push_back(data);
-
-    if (batch.instances.size() >= m_MaxBatchSize) {
-        flushBatch(key, batch);
-        batch.instances.clear();
-    }
+    batch.centerSum += glm::vec3(modelMatrix[3]);  // accumulate world position
 }
 
 void Renderer::flushBatch(const BatchKey& key, BatchData& batch) {
     if (batch.instances.empty()) return;
 
     const auto& state = key.material->getState();
-    if (state.blend) {
-        glEnable(GL_BLEND);
-    } else {
-        glDisable(GL_BLEND);
-    }
-    glDepthMask(state.depthWrite ? GL_TRUE : GL_FALSE);
-    if (state.cull) {
+    if (state.cull)
         glEnable(GL_CULL_FACE);
-    } else {
+    else
         glDisable(GL_CULL_FACE);
-    }
 
     auto shader = key.material->getShaderHandle().get();
-    if (!shader) {
-        throw std::runtime_error("Material missing shader");
-    }
+    if (!shader) throw std::runtime_error("Material missing shader");
     shader->bind();
 
-    auto textureHandle = key.material->getBaseColorHandle();
-    auto texturePtr = textureHandle.get();
-    texturePtr->bind(0);
-    shader->setInt("u_Texture", 0);
+    auto tex = key.material->getBaseColorHandle().get();
+    tex->bind(0);
 
     const auto& params = key.material->getParams();
     shader->setVec4("u_BaseColorFactor", &params.baseColorFactor[0]);
     shader->setFloat("u_AlphaCutoff", params.alphaCutoff);
 
-    // at this point we know how many instances we need to draw for this batch, so we can upload the
-    // instance data to the GPU
-    key.mesh->updateInstanceBuffer(
-        batch.instances.data(),
-        batch.instances.size() * sizeof(InstanceData));
-
+    key.mesh->updateInstanceBuffer(batch.instances.data(),
+                                   batch.instances.size() * sizeof(InstanceData));
     key.mesh->drawInstanced(batch.instances.size());
 
     m_Stats.drawCalls++;
     m_Stats.triangles += (key.mesh->getIndexCount() / 3) * batch.instances.size();
 }
 
-void Renderer::flush() {
-    if (!m_Camera) {
-        throw std::runtime_error("Renderer error: No camera set for rendering!");
+std::vector<Renderer::TransparentDraw> Renderer::getSortedTransparentDraws() {
+    std::vector<TransparentDraw> draws;
+    draws.reserve(m_TransparentBatches.size());
+    glm::vec3 camPos = m_Camera->getPosition();
+
+    for (auto& [key, batch] : m_TransparentBatches) {
+        if (batch.instances.empty()) continue;
+        glm::vec3 center = batch.centerSum / static_cast<float>(batch.instances.size());
+        float dist = glm::length2(camPos - center);
+        draws.push_back({dist, key, &batch});
     }
 
-    m_Stats.reset();
+    std::sort(draws.begin(), draws.end(),
+              [](const TransparentDraw& a, const TransparentDraw& b) {
+                  return a.distance > b.distance;
+              });
+    return draws;
+}
+
+void Renderer::clearBatches() {
+    for (auto& [key, batch] : m_OpaqueBatches) {
+        batch.instances.clear();
+        batch.centerSum = {};
+    }
+    for (auto& [key, batch] : m_TransparentBatches) {
+        batch.instances.clear();
+        batch.centerSum = {};
+    }
+}
+
+// We sort transparent batches back-to-front based on the average world position of their instances.
+// It's not possible to sort individual instances without breaking batching
+void Renderer::flush() {
+    if (!m_Camera) throw std::runtime_error("Renderer has no camera!");
 
     updateFrameUbo();
 
-    // Flush all remaining batches
-    for (auto& [key, batch] : m_Batches) {
-        if (!batch.instances.empty()) {
-            flushBatch(key, batch);
-        }
-    }
+    // Opaque pass — depth writes on, blending off
+    glDisable(GL_BLEND);
+    glDepthMask(GL_TRUE);
+    for (auto& [key, batch] : m_OpaqueBatches)
+        flushBatch(key, batch);
 
-    m_Batches.clear();
+    // Transparent pass — sorted back-to-front, depth writes off
+    glEnable(GL_BLEND);
+    glDepthMask(GL_FALSE);
+    for (auto& draw : getSortedTransparentDraws())
+        flushBatch(draw.key, *draw.batch);
 
+    clearBatches();
     resetGlState();
 }
 
@@ -200,21 +216,19 @@ void Renderer::updateFrameUbo() {
     data.sunColor = glm::vec4(m_Lights.sunColor, 0.0f);
     data.ambient = glm::vec4(m_Lights.ambientColor, m_Lights.ambientStrength);
 
-    int pointCount = static_cast<int>(m_Lights.pointLights.size());
-    pointCount = std::min(pointCount, 4);
+    int pointCount = std::min(static_cast<int>(m_Lights.pointLights.size()), 4);
     data.lightCounts = glm::vec4(static_cast<float>(pointCount), 0.0f, 0.0f, 0.0f);
-
     for (int i = 0; i < pointCount; ++i) {
         const auto& light = m_Lights.pointLights[i];
         data.pointLights[i].positionRange = glm::vec4(light.position, light.range);
         data.pointLights[i].colorIntensity = glm::vec4(light.color, light.intensity);
     }
 
-    m_FrameUbo.updateSubData(0, sizeof(FrameUbo), &data);
+    m_FrameUbo->updateSubData(0, sizeof(FrameUbo), &data);
 }
 
 void Renderer::reset() {
-    m_Batches.clear();
+    clearBatches();
     m_Stats.reset();
 }
 
