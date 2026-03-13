@@ -105,6 +105,11 @@ std::vector<MaterialHandle> buildMaterials(const tinygltf::Model& gltfModel,
         assignTexture(mat.emissiveTexture.index, matTextures.emissive);
         assignTexture(mat.occlusionTexture.index, matTextures.occlusion);
 
+        // Assign default white texture if baseColor is missing
+        if (!matTextures.baseColor.isValid()) {
+            matTextures.baseColor = assetManager.getOrLoadTexture("assets/textures/default.png");
+        }
+
         if (mat.pbrMetallicRoughness.baseColorFactor.size() == 4) {
             params.baseColorFactor = glm::vec4(
                 static_cast<float>(mat.pbrMetallicRoughness.baseColorFactor[0]),

@@ -149,14 +149,10 @@ void Renderer::flushBatch(const BatchKey& key, BatchData& batch) {
     }
     shader->bind();
 
-    auto texture = key.material->getBaseColorHandle().get();
-    if (texture) {
-        texture->bind(0);
-        shader->setInt("u_Texture", 0);
-        shader->setBool("u_HasTexture", true);
-    } else {
-        shader->setBool("u_HasTexture", false);
-    }
+    auto textureHandle = key.material->getBaseColorHandle();
+    auto texturePtr = textureHandle.get();
+    texturePtr->bind(0);
+    shader->setInt("u_Texture", 0);
 
     const auto& params = key.material->getParams();
     shader->setVec4("u_BaseColorFactor", &params.baseColorFactor[0]);
