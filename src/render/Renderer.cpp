@@ -149,8 +149,6 @@ void Renderer::flushBatch(const BatchKey& key, BatchData& batch) {
     }
     shader->bind();
 
-    shader->bindUniformBlock("FrameData", 0);
-
     auto texture = key.material->getBaseColorHandle().get();
     if (texture) {
         texture->bind(0);

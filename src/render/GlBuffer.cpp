@@ -12,9 +12,8 @@ void* GlBuffer::mapWrite(GLintptr offset, GLsizeiptr size) const {
     // GL_MAP_WRITE_BIT: We only need to write to the buffer, so we can avoid some overhead by not allowing reads.
     // GL_MAP_INVALIDATE_RANGE_BIT: We tell OpenGL that we don't care about the existing contents of the buffer
     // in the specified range, which can allow it to avoid unnecessary synchronization and improve performance.
-    // GL_MAP_UNSYNCHRONIZED_BIT: We tell OpenGL that we will handle synchronization ourselves.
     return glMapNamedBufferRange(m_Id, offset, size,
-                                 GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
+                                 GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
 }
 
 void GlBuffer::unmap() const {

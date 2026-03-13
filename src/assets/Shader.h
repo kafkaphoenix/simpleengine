@@ -22,23 +22,21 @@ class Shader : public Asset {
     void bind() const;
     void unbind() const;
 
-    void setMat4(std::string_view name, const float* value) const;
-    void setVec4(std::string_view name, const float* value) const;
-    void setVec3(std::string_view name, const float* value) const;
-    void setInt(std::string_view name, int value) const;
-    void setFloat(std::string_view name, float value) const;
-    void setBool(std::string_view name, bool value) const;
-    void bindUniformBlock(std::string_view name, unsigned int binding) const;
+    void setMat4(std::string_view name, const float* value);
+    void setVec4(std::string_view name, const float* value);
+    void setVec3(std::string_view name, const float* value);
+    void setInt(std::string_view name, int value);
+    void setFloat(std::string_view name, float value);
+    void setBool(std::string_view name, bool value);
 
     std::string_view getPath() const override { return m_Path; }
 
    private:
-    int getUniformLocation(std::string_view name) const;
+    int getUniformLocation(std::string_view name);
 
     unsigned int m_ID;
     std::string m_Path;
-    mutable std::unordered_map<std::string, int, TransparentStringHash, std::equal_to<>> m_UniformLocations;
-    mutable std::unordered_map<std::string, unsigned int, TransparentStringHash, std::equal_to<>> m_BlockIndices;
+    std::unordered_map<std::string, int, TransparentStringHash, std::equal_to<>> m_UniformLocations;
 };
 
 }  // namespace se::assets

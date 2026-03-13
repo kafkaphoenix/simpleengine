@@ -1,19 +1,36 @@
 #include "Mesh.h"
 
 #include <cstddef>
+#include <cstring>
 #include <glm/glm.hpp>
 #include <stdexcept>
 
 #include "GlUtils.h"
 #include "Renderer.h"
-#include <cstring>
 
 namespace se::render {
 
 size_t Mesh::s_DefaultInstanceCapacityBytes = 0;
 
+static size_t nextPowerOfTwo(size_t v) {
+    if (v == 0) return 1;
+
+    v--;
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+    v |= v >> 8;
+    v |= v >> 16;
+    if constexpr (sizeof(size_t) == 8) {
+        v |= v >> 32;
+    }
+    v++;
+
+    return v;
+}
+
 void Mesh::setDefaultInstanceCapacityBytes(size_t bytes) {
-    s_DefaultInstanceCapacityBytes = bytes;
+    s_DefaultInstanceCapacityBytes = nextPowerOfTwo(bytes);
 }
 
 Mesh::Mesh(float* vertices, size_t vertSize,
@@ -49,7 +66,7 @@ Mesh::Mesh(float* vertices, size_t vertSize,
 
     // Setup instance buffer with default capacity if specified
     if (s_DefaultInstanceCapacityBytes > 0) {
-        m_InstanceVbo.setData(static_cast<GLsizeiptr>(s_DefaultInstanceCapacityBytes), nullptr, GL_DYNAMIC_DRAW);
+        m_InstanceVbo.setData(static_cast<GLsizeiptr>(s_DefaultInstanceCapacityBytes), nullptr, GL_STREAM_DRAW);
         m_InstanceCapacityBytes = s_DefaultInstanceCapacityBytes;
     }
 
@@ -98,15 +115,12 @@ void Mesh::drawInstanced(size_t count) const {
     VertexArray::unbind();
 }
 
-void Mesh::updateInstanceBuffer(const void* data, size_t size) const {
+void Mesh::updateInstanceBuffer(const void* data, size_t size) {
     if (size == 0) return;
 
     if (size > m_InstanceCapacityBytes) {
-        size_t newCapacity = m_InstanceCapacityBytes == 0 ? size : m_InstanceCapacityBytes;
-        while (newCapacity < size) {
-            newCapacity *= 2;
-        }
-        m_InstanceVbo.setData(static_cast<GLsizeiptr>(newCapacity), nullptr, GL_DYNAMIC_DRAW);
+        size_t newCapacity = nextPowerOfTwo(size);
+        m_InstanceVbo.setData(static_cast<GLsizeiptr>(newCapacity), nullptr, GL_STREAM_DRAW);
         m_InstanceCapacityBytes = newCapacity;
     }
 

@@ -28,7 +28,7 @@ class Mesh {
 
     unsigned int getVAO() const { return m_Vao.id(); }
     size_t getIndexCount() const { return indexCount; }
-    void updateInstanceBuffer(const void* data, size_t size) const;
+    void updateInstanceBuffer(const void* data, size_t size);
     static void setDefaultInstanceCapacityBytes(size_t bytes);
     const AABB& getAABB() const { return m_AABB; }
     void setAABB(const AABB& aabb) { m_AABB = aabb; }
@@ -39,7 +39,7 @@ class Mesh {
     GlBuffer m_Ebo;
     AABB m_AABB;
     GlBuffer m_InstanceVbo;
-    mutable size_t m_InstanceCapacityBytes = 0;
+    size_t m_InstanceCapacityBytes = 0;
     size_t indexCount = 0;
     static size_t s_DefaultInstanceCapacityBytes;
 };

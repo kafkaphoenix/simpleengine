@@ -80,6 +80,12 @@ Shader::Shader(std::string shaderPath)
 
     glDeleteShader(vs);
     glDeleteShader(fs);
+
+    // Bind FrameData uniform block to binding 0 after linking
+    unsigned int index = glGetUniformBlockIndex(m_ID, "FrameData");
+    if (index != GL_INVALID_INDEX) {
+        glUniformBlockBinding(m_ID, index, 0);
+    }
 }
 
 Shader::~Shader() { glDeleteProgram(m_ID); }
@@ -87,70 +93,55 @@ Shader::~Shader() { glDeleteProgram(m_ID); }
 void Shader::bind() const { glUseProgram(m_ID); }
 void Shader::unbind() const { glUseProgram(0); }
 
-int Shader::getUniformLocation(std::string_view name) const {
+// Returns the location of the uniform variable with the given name, or -1 if it doesn't exist.
+int Shader::getUniformLocation(std::string_view name) {
     auto it = m_UniformLocations.find(name);
     if (it != m_UniformLocations.end()) {
         return it->second;
     }
 
+    // we save the uniform location in the map even if it's -1 (not found) to avoid redundant
+    // glGetUniformLocation calls for the same name in the future.
     std::string nameStr(name);
     int loc = glGetUniformLocation(m_ID, nameStr.c_str());
     m_UniformLocations.emplace(nameStr, loc);
     return loc;
 }
 
-void Shader::setMat4(std::string_view name, const float* value) const {
+void Shader::setMat4(std::string_view name, const float* value) {
     int loc = getUniformLocation(name);
     if (loc != -1) {
         glUniformMatrix4fv(loc, 1, GL_FALSE, value);
     }
 }
 
-void Shader::setVec4(std::string_view name, const float* value) const {
+void Shader::setVec4(std::string_view name, const float* value) {
     int loc = getUniformLocation(name);
     if (loc != -1) {
         glUniform4fv(loc, 1, value);
     }
 }
 
-void Shader::setVec3(std::string_view name, const float* value) const {
+void Shader::setVec3(std::string_view name, const float* value) {
     int loc = getUniformLocation(name);
     if (loc != -1) {
         glUniform3fv(loc, 1, value);
     }
 }
 
-void Shader::setInt(std::string_view name, int value) const {
+void Shader::setInt(std::string_view name, int value) {
     int loc = getUniformLocation(name);
     if (loc != -1) glUniform1i(loc, value);
 }
 
-void Shader::setFloat(std::string_view name, float value) const {
+void Shader::setFloat(std::string_view name, float value) {
     int loc = getUniformLocation(name);
     if (loc != -1) glUniform1f(loc, value);
 }
 
-void Shader::setBool(std::string_view name, bool value) const {
+void Shader::setBool(std::string_view name, bool value) {
     int loc = getUniformLocation(name);
     if (loc != -1) glUniform1i(loc, value ? 1 : 0);
-}
-
-void Shader::bindUniformBlock(std::string_view name, unsigned int binding) const {
-    auto it = m_BlockIndices.find(name);
-    unsigned int index = 0;
-    if (it != m_BlockIndices.end()) {
-        index = it->second;
-    } else {
-        std::string nameStr(name);
-        index = glGetUniformBlockIndex(m_ID, nameStr.c_str());
-        m_BlockIndices.emplace(nameStr, index);
-    }
-
-    if (index == GL_INVALID_INDEX) {
-        throw std::runtime_error(std::format("Uniform block not found: {}", name));
-    }
-
-    glUniformBlockBinding(m_ID, index, binding);
 }
 
 }  // namespace se::assets
