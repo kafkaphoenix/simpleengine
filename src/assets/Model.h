@@ -1,5 +1,4 @@
 #pragma once
-
 #include <memory>
 #include <string>
 #include <string_view>
@@ -29,7 +28,6 @@ class Model : public Asset {
 
    private:
     static std::string getDirectory(std::string_view filepath);
-
     std::vector<SubMesh> m_SubMeshes;
 };
 

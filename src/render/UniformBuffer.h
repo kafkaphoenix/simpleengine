@@ -1,5 +1,4 @@
 #pragma once
-
 #include "GlBuffer.h"
 
 namespace se::render {

@@ -1,7 +1,6 @@
 #pragma once
-
-#include "assets/Material.h"
 #include "Transform.h"
+#include "assets/Material.h"
 
 namespace se::render {
 class Mesh;

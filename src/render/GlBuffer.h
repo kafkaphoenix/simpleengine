@@ -1,12 +1,9 @@
 #pragma once
-
 #include <glad/glad.h>
 
 namespace se::render {
 
 class GlBuffer {
-   public:
-    // Map buffer for writing (dynamic streaming)
    public:
     GlBuffer();
     ~GlBuffer();

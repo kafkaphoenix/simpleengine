@@ -382,7 +382,6 @@ void Window::toggleFullscreen() {
             m_EventBus->queue(event);
         }
     }
-
 }
 
 void Window::setStatsTitle(std::string title) {

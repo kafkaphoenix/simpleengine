@@ -1,8 +1,8 @@
-#include "Application.h"
-
 #include <cstdio>
 #include <exception>
 #include <print>
+
+#include "Application.h"
 
 int main() {
     try {

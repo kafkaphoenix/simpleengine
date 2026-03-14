@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Light.h"
 #include "Transform.h"
 
@@ -17,7 +16,7 @@ class Sun {
 
    private:
     Transform m_Transform;
-    Light m_Light;
+    Light m_Light{LightType::Directional};
 };
 
 }  // namespace se::scene
