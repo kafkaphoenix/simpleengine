@@ -1,9 +1,15 @@
 #include "VertexArray.h"
 
+#include <format>
+
 namespace se::render {
 
 VertexArray::VertexArray() {
     glCreateVertexArrays(1, &m_Id);
+    if (glad_glObjectLabel && m_Id) {
+        std::string vaoLabel = std::format("VertexArray [{}]", reinterpret_cast<uintptr_t>(this));
+        glad_glObjectLabel(GL_VERTEX_ARRAY, m_Id, static_cast<GLsizei>(vaoLabel.size()), vaoLabel.c_str());
+    }
 }
 
 VertexArray::~VertexArray() {

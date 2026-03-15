@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <glm/glm.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtx/norm.hpp>
 #include <stdexcept>

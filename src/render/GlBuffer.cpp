@@ -1,11 +1,15 @@
 #include "GlBuffer.h"
 
-#include <glad/glad.h>
+#include <format>
 
 namespace se::render {
 
 GlBuffer::GlBuffer() {
     glCreateBuffers(1, &m_Id);
+    if (glad_glObjectLabel && m_Id) {
+        std::string bufLabel = std::format("GlBuffer [{}]", reinterpret_cast<uintptr_t>(this));
+        glad_glObjectLabel(GL_BUFFER, m_Id, static_cast<GLsizei>(bufLabel.size()), bufLabel.c_str());
+    }
 }
 
 void* GlBuffer::mapWrite(GLintptr offset, GLsizeiptr size) const {

@@ -78,6 +78,10 @@ Texture::Texture(std::string path, bool flipVertically)
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
     stbi_image_free(data);
+    if (glad_glObjectLabel) {
+        std::string texLabel = std::format("Texture [{}]", path);
+        glad_glObjectLabel(GL_TEXTURE, m_ID, static_cast<GLsizei>(texLabel.size()), texLabel.c_str());
+    }
 }
 
 Texture::Texture(std::span<const uint8_t> data, int width, int height, int channels)
