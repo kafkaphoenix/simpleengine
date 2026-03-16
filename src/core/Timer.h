@@ -9,11 +9,11 @@ class Timer {
 
     void reset() { m_start = std::chrono::steady_clock::now(); }
 
-    double get_seconds() const {
+    double seconds() const {
         return std::chrono::duration<double>(std::chrono::steady_clock::now() - m_start).count();
     }
 
-    double get_milliseconds() const {
+    double millis() const {
         return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - m_start).count();
     }
 

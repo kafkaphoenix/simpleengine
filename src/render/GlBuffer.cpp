@@ -42,12 +42,16 @@ GlBuffer& GlBuffer::operator=(GlBuffer&& other) noexcept {
     return *this;
 }
 
-void GlBuffer::setData(GLsizeiptr size, const void* data, GLenum usage) const {
-    glNamedBufferData(m_Id, size, data, usage);
+void GlBuffer::setData(std::span<const std::byte> data, GLenum usage) const {
+    glNamedBufferData(m_Id, static_cast<GLsizeiptr>(data.size_bytes()), data.data(), usage);
 }
 
-void GlBuffer::updateSubData(GLintptr offset, GLsizeiptr size, const void* data) const {
-    glNamedBufferSubData(m_Id, offset, size, data);
+void GlBuffer::setData(GLsizeiptr size, GLenum usage) const {
+    glNamedBufferData(m_Id, size, nullptr, usage);
+}
+
+void GlBuffer::updateSubData(GLintptr offset, std::span<const std::byte> data) const {
+    glNamedBufferSubData(m_Id, offset, static_cast<GLsizeiptr>(data.size_bytes()), data.data());
 }
 
 void GlBuffer::release() {

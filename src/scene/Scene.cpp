@@ -42,7 +42,7 @@ void Scene::createSponzaModel() {
         renderable.transform = t;
         addRenderable(renderable);
     }
-    std::println("Sponza model loaded in {} ms", timer.get_milliseconds());
+    std::println("Sponza model loaded in {} ms", timer.millis());
 }
 
 void Scene::update(float deltaTime, const se::core::Input& input) {

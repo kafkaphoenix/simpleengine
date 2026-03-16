@@ -22,7 +22,7 @@ class AssetHandle {
     std::shared_ptr<T> get() const;
 
     bool isValid() const { return m_AssetManager != nullptr && m_Id != 0; }
-    UUID getId() const { return m_Id; }
+    UUID id() const { return m_Id; }
 
     bool operator==(const AssetHandle<T>& other) const {
         return m_AssetManager == other.m_AssetManager && m_Id == other.m_Id;
@@ -47,7 +47,7 @@ namespace std {
 template <typename T>
 struct hash<se::assets::AssetHandle<T>> {
     std::size_t operator()(const se::assets::AssetHandle<T>& handle) const {
-        return std::hash<uint64_t>{}(static_cast<uint64_t>(handle.getId()));
+        return std::hash<uint64_t>{}(static_cast<uint64_t>(handle.id()));
     }
 };
 }

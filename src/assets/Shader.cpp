@@ -7,15 +7,15 @@
 #include <sstream>
 #include <stdexcept>
 #include <string_view>
+#include <unordered_map>
 
 namespace se::assets {
 
 static std::string loadFile(std::string_view path) {
     // open file in binary mode and move the file pointer to the end of the file to get the file size
     std::ifstream file(path.data(), std::ios::binary | std::ios::ate);
-    if (!file.is_open()) {
+    if (!file.is_open())
         throw std::runtime_error(std::format("Failed to open shader file: {}", path));
-    }
 
     // get file size
     const std::streamsize size = file.tellg();
@@ -66,66 +66,110 @@ Shader::Shader(std::string shaderPath)
     glCompileShader(fs);
     checkShaderCompilation(fs, "FRAGMENT");
 
-    m_ID = glCreateProgram();
-    glAttachShader(m_ID, vs);
-    glAttachShader(m_ID, fs);
-    glLinkProgram(m_ID);
-    checkProgramLinking(m_ID);
+    m_Id = glCreateProgram();
+    glAttachShader(m_Id, vs);
+    glAttachShader(m_Id, fs);
+    glLinkProgram(m_Id);
+    checkProgramLinking(m_Id);
 
-    // Set the program's debug label to the shader path for easier identification in graphics debuggers.
     if (glad_glObjectLabel != nullptr) {
-        glad_glObjectLabel(GL_PROGRAM, m_ID, static_cast<GLsizei>(m_Path.size()), m_Path.c_str());
+        std::string progLabel = std::format("Shader Program [{}]", m_Path);
+        glad_glObjectLabel(GL_PROGRAM, m_Id, static_cast<GLsizei>(progLabel.size()), progLabel.c_str());
     }
 
     glDeleteShader(vs);
     glDeleteShader(fs);
 
-    // Bind FrameData uniform block to binding 0 after linking
-    unsigned int index = glGetUniformBlockIndex(m_ID, "FrameData");
-    if (index != GL_INVALID_INDEX) {
-        glUniformBlockBinding(m_ID, index, 0);
-    }
+    unsigned int index = glGetUniformBlockIndex(m_Id, "FrameData");
+    if (index != GL_INVALID_INDEX)
+        glUniformBlockBinding(m_Id, index, 0);
 }
 
-Shader::~Shader() { glDeleteProgram(m_ID); }
+Shader::~Shader() { glDeleteProgram(m_Id); }
 
-void Shader::bind() const { glUseProgram(m_ID); }
+void Shader::bind() const { glUseProgram(m_Id); }
 void Shader::unbind() const { glUseProgram(0); }
 
-// Returns the location of the uniform variable with the given name, or -1 if it doesn't exist.
+void Shader::validateLayout(const se::render::BufferLayout& layout,
+                            GLuint instanceAttribBase) const {
+#ifndef NDEBUG
+    GLint activeAttribs = 0;
+    glGetProgramInterfaceiv(m_Id, GL_PROGRAM_INPUT, GL_ACTIVE_RESOURCES, &activeAttribs);
+
+    // Collect only the vertex attribs (skip builtins and instance slots)
+    std::unordered_map<std::string, GLint> shaderVertexAttribs;
+    for (GLint i = 0; i < activeAttribs; ++i) {
+        char nameBuf[256];
+        GLsizei nameLen = 0;
+        glGetProgramResourceName(m_Id, GL_PROGRAM_INPUT, i,
+                                 sizeof(nameBuf), &nameLen, nameBuf);
+
+        const GLenum prop = GL_LOCATION;
+        GLint location = -1;
+        glGetProgramResourceiv(m_Id, GL_PROGRAM_INPUT, i, 1, &prop, 1, nullptr, &location);
+
+        if (location < 0) continue;
+
+        // Skip built-in attributes (e.g. gl_VertexID) which don't have a location and aren't part of the layout.
+        std::string name(nameBuf, nameLen);
+        if (name.starts_with("gl_")) continue;
+
+        // Skip instance attribs, they're owned by Mesh::setupInstanceAttributes
+        if (instanceAttribBase > 0 &&
+            location >= static_cast<GLint>(instanceAttribBase)) continue;
+
+        shaderVertexAttribs[name] = location;
+    }
+
+    const auto& elements = layout.getElements();
+
+    if (shaderVertexAttribs.size() != elements.size())
+        throw std::runtime_error(std::format(
+            "Shader '{}': layout has {} vertex attribs but shader expects {}",
+            m_Path, elements.size(), shaderVertexAttribs.size()));
+
+    GLint expectedLocation = 0;
+    for (const auto& element : elements) {
+        auto it = shaderVertexAttribs.find(element.name);
+        if (it == shaderVertexAttribs.end())
+            throw std::runtime_error(std::format(
+                "Shader '{}': layout element '{}' not found in shader",
+                m_Path, element.name));
+        if (it->second != expectedLocation)
+            throw std::runtime_error(std::format(
+                "Shader '{}': layout element '{}' expected at location {} but shader has it at {}",
+                m_Path, element.name, expectedLocation, it->second));
+        ++expectedLocation;
+    }
+#endif
+}
+
 int Shader::getUniformLocation(std::string_view name) {
     auto it = m_UniformLocations.find(name);
-    if (it != m_UniformLocations.end()) {
+    if (it != m_UniformLocations.end())
         return it->second;
-    }
 
     // we save the uniform location in the map even if it's -1 (not found) to avoid redundant
     // glGetUniformLocation calls for the same name in the future.
     std::string nameStr(name);
-    int loc = glGetUniformLocation(m_ID, nameStr.c_str());
-    m_UniformLocations.emplace(nameStr, loc);
+    int loc = glGetUniformLocation(m_Id, nameStr.c_str());
+    m_UniformLocations.emplace(std::move(nameStr), loc);
     return loc;
 }
 
 void Shader::setMat4(std::string_view name, const float* value) {
     int loc = getUniformLocation(name);
-    if (loc != -1) {
-        glUniformMatrix4fv(loc, 1, GL_FALSE, value);
-    }
+    if (loc != -1) glUniformMatrix4fv(loc, 1, GL_FALSE, value);
 }
 
 void Shader::setVec4(std::string_view name, const float* value) {
     int loc = getUniformLocation(name);
-    if (loc != -1) {
-        glUniform4fv(loc, 1, value);
-    }
+    if (loc != -1) glUniform4fv(loc, 1, value);
 }
 
 void Shader::setVec3(std::string_view name, const float* value) {
     int loc = getUniformLocation(name);
-    if (loc != -1) {
-        glUniform3fv(loc, 1, value);
-    }
+    if (loc != -1) glUniform3fv(loc, 1, value);
 }
 
 void Shader::setInt(std::string_view name, int value) {

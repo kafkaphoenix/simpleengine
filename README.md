@@ -59,18 +59,24 @@ Optionally, you can clean the build files with:
 ```bash
 make clean
 ```
+### 6. Attach Renderdoc
+To capture frames with Renderdoc, first launch the engine with:
+```bash
+make renderdoc
+```
+Then open Renderdoc, select the running process, and start capturing frames.
+> Labels are used in the renderer to help identify draw calls and resources in Renderdoc.
 
 ## Features
-- OpenGL 4.6 DSA for buffers/VAOs/textures.
+- Instanced forward rendering, CPU batching by mesh/material with frustum culling.
+- glTF/glb model loading with tinygltf.
 - Frame UBO for per-frame camera and light data.
 - Directional sun + ambient + optional point lights.
-- Instanced rendering, CPU batching by mesh/material with frustum culling.
-- glTF/glb model loading with tinygltf.
 - Simple camera controller with mouse look and WASD movement.
 - Wireframe toggle and fullscreen mode.
 - Basic stats display with configurable update interval.
 - Simple event system for input handling.
-- Asset manager with caching for shaders, textures, materials and models.
+- Asset manager with caching for shaders, textures, materials and models using AssetHandle references.
 - Simple config system with INI sections.
 
 ## Project dependencies
@@ -107,13 +113,14 @@ make clean
 - Model: Loads glTF/glb into meshes and materials.
 
 ### Render
-- Mesh: Vertex and index buffers with instanced rendering.
-- Renderer: Batches by mesh + material and draws instanced geometry (Frame UBO + lights).
-- Renderable: Mesh + material + transform tuple submitted to the renderer.
-- Buffer: OpenGL buffer wrapper for vertex/index data.
 - VertexArray: OpenGL VAO wrapper for vertex attribute setup.
+- BufferLayout: Describes vertex attribute formats and offsets for VAO setup.
+- Buffer: OpenGL buffer wrapper for vertex/index data.
+- Mesh: Vertex/index data loaded from models, with OpenGL buffers and VAO setup.
+- Renderable: Mesh + material + transform.
 - UniformBuffer: OpenGL UBO wrapper for per-frame data.
-- Frustum: View frustum for culling.
+- Renderer: Forward rendering with CPU batching (by mesh and material). It draws instanced renderables and handles per-frame UBO updates.
+- Frustum: View frustum for culling renderables outside the camera view.
 
 ### Scene
 - Scene: Owns renderables and updates game logic.
@@ -138,8 +145,8 @@ Settings are loaded from config.ini with sections for window, input, camera, and
 ## Potential improvements
 - Better error handling and logging. Using a logging library like spdlog would be a good improvement.
 - More robust asset management with reference counting and unloading/reloading.
-- More complete glTF/glb support (animations, PBR materials, Draco compression, etc). This would require updating the material system to support PBR shaders and adding animation support in the renderer and scene. And also update Mesh as right now it only supports static meshes without animations.
-- More flexible renderer with support for multiple passes, post-processing, etc.
+- More complete glTF/glb support (animations, PBR materials, Draco compression, etc). This would require updating the material system to support PBR shaders and adding animation configuration when loading the model.
+- Improve renderer with support for multiple passes, post-processing, deferred rendering, etc.
 - Adding more complex lighting models, shadows, and post-processing effects.
 - More complete input handling with action mapping and support for gamepads.
 - More complete scene management with entities, components, and systems.
@@ -151,9 +158,6 @@ Settings are loaded from config.ini with sections for window, input, camera, and
 - Editor mode with real-time scene editing and asset management.
 - Memory and Performance profiling to identify bottlenecks and optimize critical paths. Using a profiler like Tracy would be very helpful for this.
 - Cube map support for skyboxes and reflections.
-- Support different uniform variables for different shaders. Right now the uniform variables is set up in the renderer flushBatch method. For example for water it would need different uniform variables for the water shader. It could be done by either:
-    1. Add a parameter to flushBatch to specify which shader to use, and set the appropriate uniforms based on that.
-    2. Create a separate flushBatch method for water that sets the water-specific uniforms.
 - Event system improvements:
     1. Add a handled flag or priority to stop propagation (useful for UI capturing input).
     2. Add event categories to subscribe to groups (e.g., an input layer only listens to keyboard/mouse, editor tools only listen to window events).

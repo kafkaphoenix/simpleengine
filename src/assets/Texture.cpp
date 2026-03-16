@@ -40,12 +40,12 @@ Texture::Texture(std::string path, bool flipVertically)
         throw std::runtime_error(std::format("Failed to load texture: {}", m_Path));
     }
 
-    glCreateTextures(GL_TEXTURE_2D, 1, &m_ID);
-    glTextureParameteri(m_ID, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTextureParameteri(m_ID, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTextureParameteri(m_ID, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTextureParameteri(m_ID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    applyAnisotropy(m_ID);
+    glCreateTextures(GL_TEXTURE_2D, 1, &m_Id);
+    glTextureParameteri(m_Id, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTextureParameteri(m_Id, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTextureParameteri(m_Id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTextureParameteri(m_Id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    applyAnisotropy(m_Id);
 
     GLenum internalFormat, format;
     if (channels == 4) {
@@ -70,9 +70,9 @@ Texture::Texture(std::string path, bool flipVertically)
     }
 
     int mipLevels = calcMipLevels(width, height);
-    glTextureStorage2D(m_ID, mipLevels, internalFormat, width, height);
-    glTextureSubImage2D(m_ID, 0, 0, 0, width, height, format, GL_UNSIGNED_BYTE, data);
-    glGenerateTextureMipmap(m_ID);
+    glTextureStorage2D(m_Id, mipLevels, internalFormat, width, height);
+    glTextureSubImage2D(m_Id, 0, 0, 0, width, height, format, GL_UNSIGNED_BYTE, data);
+    glGenerateTextureMipmap(m_Id);
 
     // Reset alignment to default
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
@@ -80,7 +80,7 @@ Texture::Texture(std::string path, bool flipVertically)
     stbi_image_free(data);
     if (glad_glObjectLabel) {
         std::string texLabel = std::format("Texture [{}]", path);
-        glad_glObjectLabel(GL_TEXTURE, m_ID, static_cast<GLsizei>(texLabel.size()), texLabel.c_str());
+        glad_glObjectLabel(GL_TEXTURE, m_Id, static_cast<GLsizei>(texLabel.size()), texLabel.c_str());
     }
 }
 
@@ -104,12 +104,12 @@ Texture::Texture(std::span<const uint8_t> data, int width, int height, int chann
         for (size_t x = 0; x < rowSize; ++x) std::swap(row1[x], row2[x]);
     }
 
-    glCreateTextures(GL_TEXTURE_2D, 1, &m_ID);
-    glTextureParameteri(m_ID, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTextureParameteri(m_ID, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTextureParameteri(m_ID, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTextureParameteri(m_ID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    applyAnisotropy(m_ID);
+    glCreateTextures(GL_TEXTURE_2D, 1, &m_Id);
+    glTextureParameteri(m_Id, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTextureParameteri(m_Id, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTextureParameteri(m_Id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTextureParameteri(m_Id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    applyAnisotropy(m_Id);
 
     GLenum internalFormat, format;
     if (channels == 4) {
@@ -134,20 +134,20 @@ Texture::Texture(std::span<const uint8_t> data, int width, int height, int chann
         throw std::runtime_error("Unsupported texture format from memory");
 
     int mipLevels = calcMipLevels(width, height);
-    glTextureStorage2D(m_ID, mipLevels, internalFormat, width, height);
-    glTextureSubImage2D(m_ID, 0, 0, 0, width, height, format, GL_UNSIGNED_BYTE, flipped.data());
-    glGenerateTextureMipmap(m_ID);
+    glTextureStorage2D(m_Id, mipLevels, internalFormat, width, height);
+    glTextureSubImage2D(m_Id, 0, 0, 0, width, height, format, GL_UNSIGNED_BYTE, flipped.data());
+    glGenerateTextureMipmap(m_Id);
 
     // Reset alignment to default
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 }
 
 Texture::~Texture() {
-    glDeleteTextures(1, &m_ID);
+    glDeleteTextures(1, &m_Id);
 }
 
 void Texture::bind(unsigned int slot) const {
-    glBindTextureUnit(slot, m_ID);
+    glBindTextureUnit(slot, m_Id);
 }
 
 }  // namespace se::assets

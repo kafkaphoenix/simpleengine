@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstring>
+#include <format>
 #include <glm/glm.hpp>
 #include <stdexcept>
 
@@ -14,7 +15,6 @@ size_t Mesh::s_DefaultInstanceCapacityBytes = 0;
 
 static size_t nextPowerOfTwo(size_t v) {
     if (v == 0) return 1;
-
     v--;
     v |= v >> 1;
     v |= v >> 2;
@@ -25,7 +25,6 @@ static size_t nextPowerOfTwo(size_t v) {
         v |= v >> 32;
     }
     v++;
-
     return v;
 }
 
@@ -33,101 +32,112 @@ void Mesh::setDefaultInstanceCapacityBytes(size_t bytes) {
     s_DefaultInstanceCapacityBytes = nextPowerOfTwo(bytes);
 }
 
-Mesh::Mesh(float* vertices, size_t vertSize,
-           unsigned int* indices, size_t idxCount, const AABB& aabb)
-    : indexCount(idxCount), m_AABB(aabb) {
-    if (!vertices || !indices || vertSize == 0 || idxCount == 0) {
-        throw std::invalid_argument("Invalid mesh data provided!");
+GLuint Mesh::setupVertexAttributes(const BufferLayout& layout) {
+    GLuint attribIndex = 0;
+    for (const auto& element : layout.getElements()) {
+        m_Vao.enableAttrib(attribIndex);
+        m_Vao.setAttribFormat(attribIndex, element.count, element.type, element.normalized, element.offset);
+        m_Vao.setAttribBinding(attribIndex, 0);
+        ++attribIndex;
     }
+    return attribIndex;
+}
 
-    m_Vbo.setData(vertSize, vertices, GL_STATIC_DRAW);
-
-    m_Ebo.setData(
-        idxCount * sizeof(unsigned int),
-        indices, GL_STATIC_DRAW);
-
-    m_Vao.setVertexBuffer(0, m_Vbo.id(), 0, 8 * sizeof(float));
-    m_Vao.setElementBuffer(m_Ebo.id());
-
-    // Position attribute (location = 0)
-    m_Vao.enableAttrib(0);
-    m_Vao.setAttribFormat(0, 3, GL_FLOAT, GL_FALSE, 0);
-    m_Vao.setAttribBinding(0, 0);
-
-    // Normal attribute (location = 1)
-    m_Vao.enableAttrib(1);
-    m_Vao.setAttribFormat(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float));
-    m_Vao.setAttribBinding(1, 0);
-
-    // Texture coordinate attribute (location = 2)
-    m_Vao.enableAttrib(2);
-    m_Vao.setAttribFormat(2, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float));
-    m_Vao.setAttribBinding(2, 0);
-
-    // Setup instance buffer with default capacity if specified
+void Mesh::setupInstanceAttributes(GLuint baseIndex) {
     if (s_DefaultInstanceCapacityBytes > 0) {
-        m_InstanceVbo.setData(static_cast<GLsizeiptr>(s_DefaultInstanceCapacityBytes), nullptr, GL_STREAM_DRAW);
+        m_InstanceVbo.setData(s_DefaultInstanceCapacityBytes, GL_STREAM_DRAW);  // allocate only
         m_InstanceCapacityBytes = s_DefaultInstanceCapacityBytes;
     }
 
-    // Setup instance buffer (binding = 1) We use this buffer for Instanced data like modelMatrix and normalMatrix
-    // that's why we set the divisor to 1 below. The actual data will be uploaded later via updateInstanceBuffer()
-    // in Renderer::flushBatch() when we know how many instances we need to draw for each batch.
     const GLsizei instanceStride = static_cast<GLsizei>(sizeof(InstanceData));
     m_Vao.setVertexBuffer(1, m_InstanceVbo.id(), 0, instanceStride);
 
-    // Setup instance modelMatrix attributes (locations 3-6)
+    // mat4 modelMatrix — 4 x vec4
     for (int i = 0; i < 4; i++) {
-        m_Vao.enableAttrib(3 + i);
+        const GLuint slot = baseIndex + static_cast<GLuint>(i);
+        m_Vao.enableAttrib(slot);
         m_Vao.setAttribFormat(
-            3 + i, 4, GL_FLOAT, GL_FALSE,
+            slot, 4, GL_FLOAT, GL_FALSE,
             static_cast<GLuint>(offsetof(InstanceData, modelMatrix) + sizeof(glm::vec4) * i));
-        m_Vao.setAttribBinding(3 + i, 1);
+        m_Vao.setAttribBinding(slot, 1);
     }
 
-    // Setup instance normalMatrix attributes (locations 7-9, only 3 vec4s for mat3)
+    // mat3 normalMatrix — 3 x vec3
     for (int i = 0; i < 3; i++) {
-        m_Vao.enableAttrib(7 + i);
+        const GLuint slot = baseIndex + 4 + static_cast<GLuint>(i);
+        m_Vao.enableAttrib(slot);
         m_Vao.setAttribFormat(
-            7 + i, 3, GL_FLOAT, GL_FALSE,
+            slot, 3, GL_FLOAT, GL_FALSE,
             static_cast<GLuint>(offsetof(InstanceData, normalMatrix) + sizeof(glm::vec3) * i));
-        m_Vao.setAttribBinding(7 + i, 1);
+        m_Vao.setAttribBinding(slot, 1);
     }
-    m_Vao.setBindingDivisor(1, 1);  // Tell OpenGL this is per-instance data
+
+    m_Vao.setBindingDivisor(1, 1);
+}
+
+Mesh::Mesh(std::span<const std::byte> vertices,
+           std::span<const unsigned int> indices,
+           const AABB& aabb, const BufferLayout& layout,
+           bool instanced)
+    : indexCount(indices.size()), m_AABB(aabb), m_Instanced(instanced) {
+    if (vertices.empty() || indices.empty())
+        throw std::invalid_argument("Invalid mesh data provided!");
+
+    m_Vbo.setData(vertices, GL_STATIC_DRAW);
+    m_Ebo.setData(std::as_bytes(indices), GL_STATIC_DRAW);
+    m_Vao.setVertexBuffer(0, m_Vbo.id(), 0, layout.getStride());
+    m_Vao.setElementBuffer(m_Ebo.id());
+
+    GLuint firstFreeSlot = setupVertexAttributes(layout);
+
+    if (m_Instanced) {
+        m_InstanceAttribBase = firstFreeSlot;
+        setupInstanceAttributes(m_InstanceAttribBase);
+    }
 
     checkGlError("Mesh::Mesh");
 }
 
+void Mesh::draw() const {
+    if (m_Instanced)
+        throw std::logic_error("draw called on an instanced Mesh; use drawInstanced instead");
+
+    m_Vao.bind();
+    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indexCount), GL_UNSIGNED_INT, nullptr);
+    checkGlError("Mesh::draw");
+    VertexArray::unbind();
+}
+
 void Mesh::drawInstanced(size_t count) const {
+    if (!m_Instanced)
+        throw std::logic_error("drawInstanced called on a non-instanced Mesh");
     if (count == 0) return;
 
     m_Vao.bind();
-
     glDrawElementsInstanced(
         GL_TRIANGLES,
         static_cast<GLsizei>(indexCount),
         GL_UNSIGNED_INT,
         nullptr,
         static_cast<GLsizei>(count));
-
     checkGlError("Mesh::drawInstanced");
-
     VertexArray::unbind();
 }
 
-void Mesh::updateInstanceBuffer(const void* data, size_t size) {
-    if (size == 0) return;
+void Mesh::updateInstanceBuffer(std::span<const std::byte> data) {
+    if (!m_Instanced)
+        throw std::logic_error("updateInstanceBuffer called on a non-instanced Mesh");
+    if (data.empty()) return;
 
-    if (size > m_InstanceCapacityBytes) {
-        size_t newCapacity = nextPowerOfTwo(size);
-        m_InstanceVbo.setData(static_cast<GLsizeiptr>(newCapacity), nullptr, GL_STREAM_DRAW);
+    if (data.size_bytes() > m_InstanceCapacityBytes) {
+        size_t newCapacity = nextPowerOfTwo(data.size_bytes());
+        m_InstanceVbo.setData(newCapacity, GL_STREAM_DRAW);  // allocate only
         m_InstanceCapacityBytes = newCapacity;
     }
 
-    void* ptr = m_InstanceVbo.mapWrite(0, static_cast<GLsizeiptr>(size));
+    void* ptr = m_InstanceVbo.mapWrite(0, static_cast<GLsizeiptr>(data.size_bytes()));
     if (ptr) {
-        memcpy(ptr, data, size);
-        // we signal that we're done writing to the buffer so it can be used for rendering now.
+        memcpy(ptr, data.data(), data.size_bytes());
         m_InstanceVbo.unmap();
     }
 }

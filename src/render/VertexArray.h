@@ -28,7 +28,7 @@ class VertexArray {
    private:
     void release();
 
-    GLuint m_Id = 0;
+    unsigned int m_Id = 0;
 };
 
 }  // namespace se::render

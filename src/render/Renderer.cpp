@@ -145,8 +145,7 @@ void Renderer::flushBatch(const BatchKey& key, BatchData& batch) {
     shader->setVec4("u_BaseColorFactor", &params.baseColorFactor[0]);
     shader->setFloat("u_AlphaCutoff", params.alphaCutoff);
 
-    key.mesh->updateInstanceBuffer(batch.instances.data(),
-                                   batch.instances.size() * sizeof(InstanceData));
+    key.mesh->updateInstanceBuffer(batch.instances);
     key.mesh->drawInstanced(batch.instances.size());
 
     m_Stats.drawCalls++;
@@ -223,7 +222,7 @@ void Renderer::updateFrameUbo() {
         data.pointLights[i].colorIntensity = glm::vec4(light.color, light.intensity);
     }
 
-    m_FrameUbo->updateSubData(0, sizeof(FrameUbo), &data);
+    m_FrameUbo->updateSubData(0, data);
 }
 
 void Renderer::reset() {

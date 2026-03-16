@@ -1,11 +1,13 @@
 #pragma once
-#include <functional>
+#include <glad/glad.h>
+
 #include <string>
 #include <string_view>
 #include <unordered_map>
 
 #include "Asset.h"
-#include "StringHash.h"
+#include "assets/StringHash.h"
+#include "render/BufferLayout.h"
 
 namespace se::assets {
 
@@ -22,6 +24,11 @@ class Shader : public Asset {
     void bind() const;
     void unbind() const;
 
+    unsigned int id() const { return m_Id; }
+
+    void validateLayout(const se::render::BufferLayout& layout,
+                        GLuint instanceAttribBase) const;
+
     void setMat4(std::string_view name, const float* value);
     void setVec4(std::string_view name, const float* value);
     void setVec3(std::string_view name, const float* value);
@@ -30,12 +37,12 @@ class Shader : public Asset {
     void setBool(std::string_view name, bool value);
 
     std::string_view getPath() const override { return m_Path; }
-    std::uint32_t getID() const { return m_ID; }
 
    private:
+    // Returns cached location, or queries and caches it on first call.
     int getUniformLocation(std::string_view name);
 
-    std::uint32_t m_ID;
+    unsigned int m_Id = 0;
     std::string m_Path;
     std::unordered_map<std::string, int, TransparentStringHash, std::equal_to<>> m_UniformLocations;
 };
