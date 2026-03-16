@@ -145,15 +145,15 @@ Settings are loaded from config.ini with sections for window, input, camera, and
 ## Potential improvements
 - Better error handling and logging. Using a logging library like spdlog would be a good improvement.
 - More robust asset management with reference counting and unloading/reloading.
-- More complete glTF/glb support (animations, PBR materials, Draco compression, etc). This would require updating the material system to support PBR shaders and adding animation configuration when loading the model.
-- Improve renderer with support for multiple passes, post-processing, deferred rendering, etc.
+- More complete glTF/glb support (animations, PBR materials, Draco compression, etc).
+- Improve renderer (forward+ or deferred) and add more features like shadows, reflections, and post-processing.
 - Adding more complex lighting models, shadows, and post-processing effects.
 - More complete input handling with action mapping and support for gamepads.
 - More complete scene management with entities, components, and systems.
 - Debug rendering and tools for inspecting the scene and assets. Using a library like ImGui would be great for this.
 - UI system for in-game menus, HUD, etc. Using RmlUI or similar would be a good option.
 - Multithreading for asset loading(it requires mutexes for their maps) and potentially rendering (if using Vulkan as OpenGL is not thread-friendly).
-- Using Vulkan instead of OpenGL for better performance and modern features.
+- Using Vulkan instead of OpenGL for better performance and modern features (like ray tracing, compute shaders, and explicit multi-threading), though it would require a significant rewrite of the renderer and shader system.
 - Serialization for saving/loading scenes and assets.
 - Editor mode with real-time scene editing and asset management.
 - Memory and Performance profiling to identify bottlenecks and optimize critical paths. Using a profiler like Tracy would be very helpful for this.
