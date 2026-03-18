@@ -8,8 +8,8 @@ Application::Application()
     : m_Config(Config::load("config.ini")),
       m_StatsTracker(m_Config.stats()),
       m_Window(m_Config.window().width, m_Config.window().height, m_Config.window().title, &m_EventBus),
-      m_Renderer(),
-      m_Scene(static_cast<float>(m_Config.window().width) / static_cast<float>(m_Config.window().height), m_AssetManager) {
+      m_RenderManager(),
+      m_Level(static_cast<float>(m_Config.window().width) / static_cast<float>(m_Config.window().height), m_AssetManager) {
     setupWindow();
     subscribeEvents();
 
@@ -19,15 +19,14 @@ Application::Application()
 
     m_EventBus.dispatchQueued();
 
-    m_Renderer.setCamera(m_Scene.getPlayer().getCamera());
-    m_Scene.initialize();
-    m_Scene.applyConfig(m_Config);
+    m_Level.initialize();
+    m_Level.applyConfig(m_Config);
     m_Input.resetMouseFromWindow(m_Window.native());
-    m_Scene.getPlayer().update(0.0f, m_Input);
+    m_Level.getPlayer().update(0.0f, m_Input);
 }
 
 Application::~Application() {
-    m_Renderer.reset();
+    m_RenderManager.reset();
     m_AssetManager.clear();
 }
 
@@ -46,7 +45,7 @@ void Application::beginFrame() {
 }
 
 void Application::updateStats(float deltaTime) {
-    auto stats = m_StatsTracker.update(deltaTime, m_Renderer.getStats(), m_Window.getBaseTitle());
+    auto stats = m_StatsTracker.update(deltaTime, m_RenderManager.getStats(), m_Window.getBaseTitle());
     if (stats) {
         m_Window.setStatsTitle(*stats);
     }
@@ -59,7 +58,7 @@ void Application::setupWindow() {
 void Application::subscribeEvents() {
     m_Subscriptions.push_back(m_EventBus.subscribeScoped<FramebufferResizeEvent>([this](const FramebufferResizeEvent& e) {
         if (e.width > 0 && e.height > 0) {
-            m_Scene.getPlayer().getCamera().setAspect(
+            m_Level.getPlayer().getCamera().setAspect(
                 static_cast<float>(e.width) / static_cast<float>(e.height));
         }
     }));
@@ -82,7 +81,7 @@ void Application::handleShortcuts() {
     }
 
     if (m_Input.isKeyPressed(GLFW_KEY_F3)) {
-        m_Renderer.toggleWireframe();
+        m_RenderManager.toggleWireframe();
     }
 
     if (m_Input.isKeyPressed(GLFW_KEY_F12)) {
@@ -91,12 +90,12 @@ void Application::handleShortcuts() {
     }
 }
 
-void Application::updateScene(float deltaTime) {
-    m_Scene.update(deltaTime, m_Input);
+void Application::update(float deltaTime) {
+    m_Level.update(deltaTime, m_Input);
 }
 
-void Application::renderFrame() {
-    m_Renderer.render(m_Scene);
+void Application::render() {
+    m_Level.render(m_RenderManager);
 }
 
 void Application::run() {
@@ -108,13 +107,13 @@ void Application::run() {
 
         if (m_Window.isMinimized() || !m_Window.isFocused()) {
             m_Window.waitEvents(0.1);
-            continue; // Skip updating and rendering when minimized or unfocused to save resources
+            continue;
         }
 
         handleShortcuts();
 
-        updateScene(dt);
-        renderFrame();
+        update(dt);
+        render();
 
         updateStats(dt);
 

@@ -2,7 +2,7 @@
 #include <cstddef>
 #include <span>
 
-#include "GlBuffer.h"
+#include "Buffer.h"
 
 namespace se::render {
 class UniformBuffer {
@@ -31,7 +31,7 @@ class UniformBuffer {
     }
 
    private:
-    GlBuffer m_Buffer;
+    Buffer m_Buffer;
     GLuint m_Binding = 0;
 };
 }  // namespace se::render

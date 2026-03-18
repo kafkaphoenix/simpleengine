@@ -5,8 +5,8 @@
 #include <glm/vec3.hpp>
 #include <span>
 
+#include "Buffer.h"
 #include "BufferLayout.h"
-#include "GlBuffer.h"
 #include "VertexArray.h"
 
 namespace se::render {
@@ -68,12 +68,12 @@ class Mesh {
     void setupInstanceAttributes(GLuint baseIndex);
 
     VertexArray m_Vao;
-    GlBuffer m_Vbo;
-    GlBuffer m_Ebo;
+    Buffer m_Vbo;
+    Buffer m_Ebo;
     AABB m_AABB;
 
     // Only allocated when m_Instanced = true
-    GlBuffer m_InstanceVbo;
+    Buffer m_InstanceVbo;
     size_t m_InstanceCapacityBytes = 0;
     GLuint m_InstanceAttribBase = 0;
     bool m_Instanced = false;

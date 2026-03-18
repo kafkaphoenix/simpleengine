@@ -5,15 +5,15 @@
 
 namespace se::render {
 
-class GlBuffer {
+class Buffer {
    public:
-    GlBuffer();
-    ~GlBuffer();
+    Buffer();
+    ~Buffer();
 
-    GlBuffer(const GlBuffer&) = delete;
-    GlBuffer& operator=(const GlBuffer&) = delete;
-    GlBuffer(GlBuffer&& other) noexcept;
-    GlBuffer& operator=(GlBuffer&& other) noexcept;
+    Buffer(const Buffer&) = delete;
+    Buffer& operator=(const Buffer&) = delete;
+    Buffer(Buffer&& other) noexcept;
+    Buffer& operator=(Buffer&& other) noexcept;
 
     void setData(std::span<const std::byte> data, GLenum usage) const;
     void setData(GLsizeiptr size, GLenum usage) const;  // allocate only, no data

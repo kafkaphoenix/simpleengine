@@ -7,7 +7,7 @@
 #include <stdexcept>
 
 #include "GlUtils.h"
-#include "Renderer.h"
+#include "RenderQueue.h"
 
 namespace se::render {
 

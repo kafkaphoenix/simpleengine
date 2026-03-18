@@ -20,7 +20,6 @@ std::string formatKey(std::string_view section, std::string_view key) {
     return std::format("[{}] {}", section, key);
 }
 
-[[noreturn]]
 void throwConfigError(std::string_view msg) {
     throw std::runtime_error(std::format("Config error: {}", msg));
 }

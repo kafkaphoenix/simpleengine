@@ -7,8 +7,8 @@ Both GLTF and GLB versions of the Sponza model are included in the `assets/` fol
 
 | Format | Load Time | Size | Textures |
 |--------|-----------|------|----------|
-| GLTF | ~5s | 247MB | External files |
-| GLB | ~3s | 194MB | Embedded |
+| GLTF | ~5s | 325MB | External files |
+| GLB | ~3s | 325MB | Embedded |
 
 ![Sponza screenshot](docs/img/sponza_gltf.png)
 *Sponza GLTF model with external textures*
@@ -65,7 +65,7 @@ To capture frames with Renderdoc, first launch the engine with:
 make renderdoc
 ```
 Then open Renderdoc, select the running process, and start capturing frames.
-> Labels are used in the renderer to help identify draw calls and resources in Renderdoc.
+> Labels are used in the render logic to help identify draw calls and resources in Renderdoc.
 
 ## Features
 - Instanced forward rendering, CPU batching by mesh/material with frustum culling.
@@ -96,7 +96,7 @@ Then open Renderdoc, select the running process, and start capturing frames.
 ## Engine architecture
 
 ### Core
-- Application: Owns the main loop, window, renderer, asset manager, and scene.
+- Application: Owns the main loop, window, render manager, asset manager, and scene.
 - Window: GLFW setup, OpenGL context, and event callbacks.
 - Input: Frame-based input state built from events.
 - EventBus: Small event queue used by window callbacks.
@@ -117,19 +117,27 @@ Then open Renderdoc, select the running process, and start capturing frames.
 - BufferLayout: Describes vertex attribute formats and offsets for VAO setup.
 - Buffer: OpenGL buffer wrapper for vertex/index data.
 - Mesh: Vertex/index data loaded from models, with OpenGL buffers and VAO setup.
-- Renderable: Mesh + material + transform.
 - UniformBuffer: OpenGL UBO wrapper for per-frame data.
-- Renderer: Forward rendering with CPU batching (by mesh and material). It draws instanced renderables and handles per-frame UBO updates.
-- Frustum: View frustum for culling renderables outside the camera view.
+- RenderManager: Manages rendering, including CPU batching (by mesh and material) and per-frame UBO updates.
+- ModelRenderer: Logic for submitting model renderables to the RenderQueue with transforms.
+- RenderQueue: Collects renderables each frame and submits batches to the RenderManager.
+- RenderStats: Tracks draw calls, triangles for stats display.
+- Frustum: Simple CPU frustum culling using bounding spheres.
+- ModelRenderer: Helper for submitting model renderables to the RenderQueue with transforms.
 
-### Scene
-- Scene: Owns renderables and updates game logic.
-- Player: Camera controller (mouse look + WASD).
-- Camera: View and projection math.
+### World
+- World: Owns the scene objects, including the player, sun, and sky.
+- WorldLoader: Loads the demo scene with the Sponza model and sets up the camera and lights.
 - Transform: Position, rotation, scale helper.
 - Light: Defines directional and point lights.
+- Renderable: Mesh + material + transform.
 - Sun: Directional light with color and intensity.
 - Sky: Simple sky color and ambient light.
+
+### Game
+- Player: Camera controller (mouse look + WASD).
+- Camera: Simple perspective camera with view/projection matrix calculation.
+- Level: Owns the world and updates it each frame.
 
 ## Controls
 - WASD: Move

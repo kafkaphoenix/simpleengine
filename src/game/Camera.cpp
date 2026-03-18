@@ -3,7 +3,7 @@
 #include <cmath>
 #include <glm/gtc/matrix_transform.hpp>
 
-namespace se::scene {
+namespace se::game {
 
 Camera::Camera(float aspectRatio)
     : m_Position(-5.0f, 5.0f, 5.0f),  // Eye level
@@ -104,4 +104,4 @@ glm::mat4 Camera::getViewProjection() const {
     return proj * view;
 }
 
-}  // namespace se::scene
+}  // namespace se::game

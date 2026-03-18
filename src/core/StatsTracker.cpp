@@ -16,7 +16,7 @@ void StatsTracker::reset() {
 }
 
 std::optional<std::string> StatsTracker::update(float deltaTime,
-                                                const se::render::Renderer::Stats& renderStats,
+                                                const se::render::RenderStats& renderStats,
                                                 std::string_view title) {
     if (!m_Enabled) {
         return std::nullopt;

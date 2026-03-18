@@ -7,8 +7,8 @@
 #include "StatsTracker.h"
 #include "Window.h"
 #include "assets/AssetManager.h"
-#include "render/Renderer.h"
-#include "scene/Scene.h"
+#include "game/Level.h"
+#include "render/RenderManager.h"
 
 namespace se::core {
 
@@ -25,8 +25,8 @@ class Application {
     void setupWindow();
     void subscribeEvents();
     void handleShortcuts();
-    void updateScene(float deltaTime);
-    void renderFrame();
+    void update(float deltaTime);
+    void render();
     void updateStats(float deltaTime);
 
     Config m_Config;
@@ -36,8 +36,8 @@ class Application {
     Input m_Input;
     Window m_Window;
     se::assets::AssetManager m_AssetManager;
-    se::render::Renderer m_Renderer;
-    se::scene::Scene m_Scene;
+    se::render::RenderManager m_RenderManager;
+    se::game::Level m_Level;
 };
 
 }  // namespace se::core

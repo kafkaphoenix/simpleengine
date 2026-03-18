@@ -1,7 +1,7 @@
 #pragma once
 #include <glm/glm.hpp>
 
-namespace se::scene {
+namespace se::game {
 
 class Camera {
    public:
@@ -48,4 +48,4 @@ class Camera {
     float m_Far;
 };
 
-}  // namespace se::scene
+}  // namespace se::game

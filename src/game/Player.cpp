@@ -4,9 +4,10 @@
 
 #include <algorithm>
 
+#include "core/Config.h"
 #include "core/Input.h"
 
-namespace se::scene {
+namespace se::game {
 
 void Player::setMouseSmoothing(float alpha) {
     m_MouseSmoothAlpha = std::clamp(alpha, 0.0f, 1.0f);
@@ -21,6 +22,22 @@ void Player::setFixedStep(float stepSeconds) {
 void Player::update(float deltaTime, const se::core::Input& input) {
     updateMouseLook(input);
     updateKeyboardMovement(deltaTime, input);
+}
+
+void Player::applyConfig(const se::core::Config& config) {
+    Camera::Settings s;
+    s.position = {config.camera().startPosX,
+                  config.camera().startPosY,
+                  config.camera().startPosZ};
+    s.moveSpeed = config.camera().moveSpeed;
+    s.mouseSensitivity = config.input().mouseSensitivity;
+    s.fov = config.camera().fov;
+    s.nearPlane = config.camera().nearPlane;
+    s.farPlane = config.camera().farPlane;
+
+    m_Camera.applySettings(s);
+    setMouseSmoothing(config.input().mouseSmoothAlpha);
+    setFixedStep(config.input().fixedStep);
 }
 
 void Player::updateMouseLook(const se::core::Input& input) {
@@ -58,4 +75,4 @@ void Player::applyKeyboardStep(float stepSeconds, const se::core::Input& input) 
         stepSeconds);
 }
 
-}  // namespace se::scene
+}  // namespace se::game

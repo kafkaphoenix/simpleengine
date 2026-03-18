@@ -4,7 +4,7 @@
 #include <string_view>
 
 #include "Config.h"
-#include "render/Renderer.h"
+#include "render/RenderStats.h"
 
 namespace se::core {
 
@@ -18,7 +18,7 @@ class StatsTracker {
     void reset();
 
     std::optional<std::string> update(float deltaTime,
-                                      const se::render::Renderer::Stats& renderStats,
+                                      const se::render::RenderStats& renderStats,
                                       std::string_view title);
 
    private:
