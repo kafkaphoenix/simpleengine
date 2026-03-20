@@ -8,7 +8,7 @@
 #include "RenderQueue.h"
 #include "RenderStats.h"
 #include "UniformBuffer.h"
-#include "game/Camera.h"
+#include "world/Camera.h"
 #include "world/LightData.h"
 #include "world/Renderable.h"
 
@@ -19,7 +19,7 @@ class ModelRenderer {
     ModelRenderer();
 
     void submit(const se::world::Renderable& renderable, const Frustum& frustum);
-    void flush(const se::world::LightData& lights, const se::game::Camera& camera);
+    void flush(const se::world::LightData& lights, const se::world::Camera& camera);
     void toggleWireframe();
     void setBatchSize(size_t maxInstances);
     void reset();
@@ -36,12 +36,12 @@ class ModelRenderer {
     void setupFrameUbo();
     void flushBatch(const BatchKey& key, BatchData& batch);
     void updateFrameUbo(const se::world::LightData& lights,
-                        const se::game::Camera& camera);
+                        const se::world::Camera& camera);
     void resetGlState();
     void applyWireframeState();
 
     std::vector<TransparentDraw> getSortedTransparentDraws(
-        const se::game::Camera& camera);
+        const se::world::Camera& camera);
 
     RenderQueue m_Queue;
     size_t m_MaxBatchSize = 1000;

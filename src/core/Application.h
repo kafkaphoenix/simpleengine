@@ -7,7 +7,7 @@
 #include "StatsTracker.h"
 #include "Window.h"
 #include "assets/AssetManager.h"
-#include "game/Level.h"
+#include "scene/Level.h"
 #include "render/RenderManager.h"
 
 namespace se::core {
@@ -37,7 +37,7 @@ class Application {
     Window m_Window;
     se::assets::AssetManager m_AssetManager;
     se::render::RenderManager m_RenderManager;
-    se::game::Level m_Level;
+    se::scene::Level m_Level;
 };
 
 }  // namespace se::core

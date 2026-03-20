@@ -10,7 +10,7 @@ RenderManager::RenderManager() {
     setupGlState();
 }
 
-void RenderManager::beginFrame(const se::game::Camera& camera) {
+void RenderManager::beginFrame(const se::world::Camera& camera) {
     if (!m_Camera && &camera == nullptr)
         throw std::runtime_error("RenderManager: null camera passed to beginFrame!");
 

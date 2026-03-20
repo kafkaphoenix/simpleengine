@@ -94,6 +94,7 @@ Then open Renderdoc, select the running process, and start capturing frames.
 - CMakeLists.txt, Makefile, vcpkg.json, vcpkg-configuration.json, CMakePresets.json, and launch configurations.
 
 ## Engine architecture
+The engine is organized into five modules:
 
 ### Core
 - Application: Owns the main loop, window, render manager, asset manager, and scene.
@@ -117,27 +118,26 @@ Then open Renderdoc, select the running process, and start capturing frames.
 - BufferLayout: Describes vertex attribute formats and offsets for VAO setup.
 - Buffer: OpenGL buffer wrapper for vertex/index data.
 - Mesh: Vertex/index data loaded from models, with OpenGL buffers and VAO setup.
-- UniformBuffer: OpenGL UBO wrapper for per-frame data.
-- RenderManager: Manages rendering, including CPU batching (by mesh and material) and per-frame UBO updates.
-- ModelRenderer: Logic for submitting model renderables to the RenderQueue with transforms.
-- RenderQueue: Collects renderables each frame and submits batches to the RenderManager.
+- UniformBuffer: OpenGL UBO wrapper for per-frame data (camera, lights).
+- Frustum: Simple CPU frustum culling for renderables outside the camera view.
+- RenderManager: Manages rendering each frame, including frustum culling and calling renderers.
+- ModelRenderer: Handles submitting model renderables to the RenderQueue and grouping them for efficient rendering.
+- RenderQueue: Collects renderables each frame to be processed by each renderer at the end of the frame.
 - RenderStats: Tracks draw calls, triangles for stats display.
-- Frustum: Simple CPU frustum culling using bounding spheres.
-- ModelRenderer: Helper for submitting model renderables to the RenderQueue with transforms.
 
 ### World
-- World: Owns the scene objects, including the player, sun, and sky.
-- WorldLoader: Loads the demo scene with the Sponza model and sets up the camera and lights.
-- Transform: Position, rotation, scale helper.
-- Light: Defines directional and point lights.
-- Renderable: Mesh + material + transform.
+- World: Owns the scene objects, lights (sun), and the sky.
+- WorldLoader: Loads the demo scene with the Sponza model and sets up the lights.
+- Light: Defines different light types (directional, point, and spot).
 - Sun: Directional light with color and intensity.
 - Sky: Simple sky color and ambient light.
-
-### Game
-- Player: Camera controller (mouse look + WASD).
+- Transform: Defines position, rotation, and scale.
+- Renderable: Defines a renderable object composed of a mesh, material, and transform.
 - Camera: Simple perspective camera with view/projection matrix calculation.
-- Level: Owns the world and updates it each frame.
+- Player: Camera controller with WASD movement and mouse look, no physics, collisions or model.
+
+### Scene
+- Level: Owns the world and the player. Loads the demo scene and updates the world each frame. It also handles input for the player and the initial configuration of the scene.
 
 ## Controls
 - WASD: Move

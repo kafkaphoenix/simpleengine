@@ -7,7 +7,7 @@
 #include "core/Config.h"
 #include "core/Input.h"
 
-namespace se::game {
+namespace se::world {
 
 void Player::setMouseSmoothing(float alpha) {
     m_MouseSmoothAlpha = std::clamp(alpha, 0.0f, 1.0f);
@@ -75,4 +75,4 @@ void Player::applyKeyboardStep(float stepSeconds, const se::core::Input& input) 
         stepSeconds);
 }
 
-}  // namespace se::game
+}  // namespace se::world

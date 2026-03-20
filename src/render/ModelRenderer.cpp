@@ -41,7 +41,7 @@ void ModelRenderer::submit(const se::world::Renderable& renderable, const Frustu
 }
 
 void ModelRenderer::flush(const se::world::LightData& lights,
-                          const se::game::Camera& camera) {
+                          const se::world::Camera& camera) {
     m_Stats = m_Queue.getStats();
 
     updateFrameUbo(lights, camera);
@@ -119,7 +119,7 @@ void ModelRenderer::flushBatch(const BatchKey& key, BatchData& batch) {
 }
 
 std::vector<ModelRenderer::TransparentDraw>
-ModelRenderer::getSortedTransparentDraws(const se::game::Camera& camera) {
+ModelRenderer::getSortedTransparentDraws(const se::world::Camera& camera) {
     std::vector<TransparentDraw> draws;
     draws.reserve(m_Queue.getTransparentBatches().size());
 
@@ -141,7 +141,7 @@ ModelRenderer::getSortedTransparentDraws(const se::game::Camera& camera) {
 }
 
 void ModelRenderer::updateFrameUbo(const se::world::LightData& lights,
-                                   const se::game::Camera& camera) {
+                                   const se::world::Camera& camera) {
     FrameUbo data{
         .viewProj = camera.getViewProjection(),
     };

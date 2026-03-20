@@ -6,7 +6,7 @@ class Input;
 class Config;
 }
 
-namespace se::game {
+namespace se::world {
 
 class Player {
    public:
@@ -32,4 +32,4 @@ class Player {
     float m_FixedStep = 1.0f / 120.0f;
 };
 
-}  // namespace se::game
+}  // namespace se::world

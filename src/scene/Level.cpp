@@ -4,7 +4,7 @@
 #include "core/Input.h"
 #include "render/RenderManager.h"
 
-namespace se::game {
+namespace se::scene {
 
 Level::Level(float aspectRatio, se::assets::AssetManager& assetManager)
     : m_Player(aspectRatio), m_Loader(assetManager) {}
@@ -28,4 +28,4 @@ void Level::applyConfig(const se::core::Config& config) {
     m_Player.applyConfig(config);
 }
 
-}  // namespace se::game
+}  // namespace se::scene
