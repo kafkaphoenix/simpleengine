@@ -1,5 +1,7 @@
 #pragma once
 
+#include "assets/AssetHandle.h"
+
 namespace se::assets {
 class AssetManager;
 }
@@ -17,6 +19,7 @@ class WorldLoader {
    private:
     void loadSky(World& world);
     void loadModels(World& world);
+    void submitModel(const se::assets::ModelHandle& model, World& world);
 
     se::assets::AssetManager& m_AssetManager;
 };

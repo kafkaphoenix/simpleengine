@@ -34,13 +34,17 @@ void WorldLoader::loadSky(World& world) {
 
 void WorldLoader::loadModels(World& world) {
     se::core::Timer timer;
+    const auto& model = m_AssetManager.getOrLoadModel("assets/models/sponza_glb/sponza.glb",
+                                               "assets/shaders/basic");
+    std::println("Sponza loaded in {} ms", timer.millis());
+    submitModel(model, world);
+}
 
+void WorldLoader::submitModel(const se::assets::ModelHandle& model, World& world) {
     Transform t;
     t.position = {0.0f, 0.0f, 0.0f};
     t.scale = {0.1f, 0.1f, 0.1f};
 
-    auto model = m_AssetManager.getOrLoadModel("assets/models/sponza_glb/sponza.glb",
-                                               "assets/shaders/basic");
     auto modelPtr = model.get();
     if (!modelPtr)
         throw std::runtime_error("Model handle is invalid");
@@ -55,8 +59,5 @@ void WorldLoader::loadModels(World& world) {
         r.transform = t;
         world.addRenderable(r);
     }
-
-    std::println("Sponza loaded in {} ms", timer.millis());
 }
-
 }  // namespace se::world
