@@ -31,7 +31,7 @@ std::optional<std::string> StatsTracker::update(float deltaTime,
     float fps = m_Frames / m_Timer;
     ProcessMemoryUsage mem = getProcessMemoryUsageKB();
     std::string stats = std::format(
-        "{} FPS: {} RAM: {}/{}MB | Model: Draws {} Triangles {}",
+        "{} FPS: {} RAM: {}/{}MB | Models: Draws {} Triangles {}",
         title,
         static_cast<int>(fps),
         mem.usedKB / 1024,

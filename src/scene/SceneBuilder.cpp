@@ -7,18 +7,18 @@
 #include "Scene.h"
 #include "assets/AssetManager.h"
 #include "core/Timer.h"
-#include "scene/Light.h"
-#include "scene/Sun.h"
-#include "scene/Transform.h"
+#include "Light.h"
+#include "Sun.h"
+#include "Transform.h"
 
 namespace se::scene {
 
 void SceneBuilder::Build(Scene& scene, se::assets::AssetManager& assetManager) {
-    LoadSky(scene);
+    CreateSky(scene);
     LoadModels(scene, assetManager);
 }
 
-void SceneBuilder::LoadSky(Scene& scene) {
+void SceneBuilder::CreateSky(Scene& scene) {
     DirectionalLight sun;
     sun.direction = glm::normalize(glm::vec3(-0.5f, -1.0f, -0.3f));
     sun.color = glm::vec3(1.0f, 0.95f, 0.9f);
