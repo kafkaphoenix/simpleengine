@@ -148,9 +148,10 @@ void ModelRenderer::updateFrameUbo(const se::scene::LightData& lights,
                                    const se::scene::Camera& camera) {
     FrameUbo data{.viewProj = camera.getViewProjection()};
 
-    if (lights.sun) {
-        data.sunDir = glm::vec4(glm::normalize(lights.sun->direction), 0.0f);
-        data.sunColor = glm::vec4(lights.sun->color * lights.sun->intensity, 0.0f);
+    if (!lights.directionalLights.empty()) {
+        const auto& sun = lights.directionalLights[0];
+        data.sunDir = glm::vec4(glm::normalize(sun.direction), 0.0f);
+        data.sunColor = glm::vec4(sun.color * sun.intensity, 0.0f);
     }
 
     data.ambient = glm::vec4(lights.ambientColor, lights.ambientStrength);

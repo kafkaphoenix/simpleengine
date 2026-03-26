@@ -29,13 +29,13 @@ class Scene {
     // LightData is a zero-copy view into Scene's light vectors.
     // Translation to GPU layout happens once in updateFrameUbo.
     LightData prepareLightData() const {
-        LightData d;
-        d.sun = m_DirectionalLights.empty() ? nullptr : &m_DirectionalLights[0];
-        d.pointLights = m_PointLights;
-        d.spotLights = m_SpotLights;
-        d.ambientColor = m_Sky.getAmbientColor();
-        d.ambientStrength = m_Sky.getAmbientStrength();
-        return d;
+        return LightData{
+            .directionalLights = m_DirectionalLights,
+            .pointLights = m_PointLights,
+            .spotLights = m_SpotLights,
+            .ambientColor = m_Sky.getAmbientColor(),
+            .ambientStrength = m_Sky.getAmbientStrength(),
+        };
     }
 
    private:
