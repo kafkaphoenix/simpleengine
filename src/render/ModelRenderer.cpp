@@ -133,7 +133,7 @@ ModelRenderer::getSortedTransparentDraws(const se::scene::Camera& camera) {
         if (batch.instances.empty()) continue;
         const glm::vec3 center = batch.centerSum /
                                  static_cast<float>(batch.instances.size());
-        draws.push_back({
+        draws.push_back(TransparentDraw{
             .distance = glm::length2(camPos - center),
             .key = key,
             .batch = &batch,

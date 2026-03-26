@@ -22,7 +22,7 @@ void Level::render(se::render::RenderManager& renderManager) {
     renderManager.beginFrame(m_Player.getCamera());
     for (const auto& r : m_Scene.getRenderables())
         renderManager.submit(r);
-    renderManager.endFrame(m_Scene.getLightData());
+    renderManager.endFrame(m_Scene.prepareLightData());
 }
 
 }  // namespace se::core
