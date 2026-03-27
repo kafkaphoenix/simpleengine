@@ -14,10 +14,9 @@ namespace se::core {
 
 class Level {
    public:
-    Level() = default;
+    Level(const Config& config, se::render::RenderManager& renderManager, se::assets::AssetManager& assetManager);
     ~Level() = default;
 
-    void initialize(const Config& config, se::render::RenderManager& renderManager, se::assets::AssetManager& assetManager);
     void update(float deltaTime, const Input& input);
     void render(se::render::RenderManager& renderManager);
 

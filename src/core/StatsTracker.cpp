@@ -7,8 +7,7 @@
 namespace se::core {
 
 StatsTracker::StatsTracker(const Config::Stats& config)
-    : m_Enabled(config.showStats),
-      m_Interval(config.interval) {}
+    : m_Enabled(config.enabled), m_RefreshInterval(config.refreshInterval) {}
 
 void StatsTracker::reset() {
     m_Timer = 0.0f;
@@ -24,7 +23,7 @@ std::optional<std::string> StatsTracker::update(float deltaTime,
 
     m_Timer += deltaTime;
     m_Frames++;
-    if (m_Timer < m_Interval) {
+    if (m_Timer < m_RefreshInterval) {
         return std::nullopt;
     }
 

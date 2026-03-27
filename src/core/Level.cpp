@@ -8,9 +8,7 @@
 
 namespace se::core {
 
-void Level::initialize(const Config& config, se::render::RenderManager& renderManager, se::assets::AssetManager& assetManager) {
-    m_Player.applyConfig(config);
-
+Level::Level(const Config& config, se::render::RenderManager& renderManager, se::assets::AssetManager& assetManager) : m_Player(config) {
     se::scene::SceneBuilder::Build(m_Scene, assetManager);
 }
 
