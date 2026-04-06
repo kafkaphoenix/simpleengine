@@ -41,7 +41,7 @@ std::optional<bool> parseBoolToken(std::string_view value) {
         if (token.size() != value.size()) {
             return false;
         }
-        const auto* valueIt = value.begin();
+        auto valueIt = value.begin();
         for (auto tokenCh : token) {
             auto left = static_cast<unsigned char>(tokenCh);
             auto right = static_cast<unsigned char>(*valueIt);
