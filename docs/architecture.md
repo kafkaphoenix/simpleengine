@@ -39,6 +39,7 @@ The engine is organized into several modules, each responsible for a specific as
 - AssetManager: Loads and caches shaders, textures, models, and materials.
 - Shader: GLSL program compilation and uniform updates.
 - Texture: Image loading and OpenGL texture setup.
+- Cubemap: Loads 6 face images into a cube map texture using DSA.
 - Material: Shader + textures + render state, matching glTF data. Lighting is simple diffuse.
 - Model: Loads glTF/glb into meshes and materials.
 
@@ -48,9 +49,13 @@ The engine is organized into several modules, each responsible for a specific as
 - Buffer: OpenGL buffer wrapper for vertex/index data.
 - Mesh: Vertex/index data loaded from models, with OpenGL buffers and VAO setup.
 - UniformBuffer: OpenGL UBO wrapper for per-frame data (camera, lights).
+- Framebuffer: Off-screen render target with color textures (HDR) and depth. Supports multiple render targets and depth-only FBOs.
 - Frustum: Simple CPU frustum culling for renderables outside the camera view.
-- RenderManager: Manages rendering each frame, including frustum culling and calling renderers.
+- RenderManager: Orchestrates render passes (geometry, skybox, post-process) and framebuffer management.
 - ModelRenderer: Handles submitting model renderables to the RenderQueue and grouping them for efficient rendering.
+- SkyboxRenderer: Renders a cubemap skybox with attributeless cube and depth trick. Uses shared frame UBO.
+- PostProcessRenderer: Full-screen post-processing pass with selectable effects (tone map, inversion, grayscale, sharpen, blur, edge detect).
+- ScreenQuad: Attributeless full-screen triangle for post-processing.
 - RenderQueue: Collects renderables each frame to be processed by each renderer at the end of the frame.
 - RenderStats: Tracks draw calls, triangles for stats display.
 
@@ -59,7 +64,7 @@ The engine is organized into several modules, each responsible for a specific as
 - SceneBuilder: Builds the demo scene loading the Sponza model and sets up the lights.
 - Light: Defines different light types (directional, point, and spot).
 - Sun: Directional light with color and intensity.
-- Sky: Simple sky color and ambient light.
+- Sky: Sky ambient light and optional cubemap skybox.
 - Transform: Defines position, rotation, and scale.
 - Renderable: Defines a renderable object composed of a mesh, material, and transform.
 - Camera: Simple perspective camera with view/projection matrix calculation.
@@ -69,8 +74,8 @@ The engine is organized into several modules, each responsible for a specific as
 - More complete glTF/glb support (animations, PBR materials, Draco compression, etc).
 - Better error handling and logging. Using a logging library like spdlog would be a good improvement.
 - More robust asset management with reference counting and unloading/reloading.
-- Improve renderer (forward+ or deferred) and add more features like shadows, reflections, and post-processing.
-- Adding more complex lighting models, shadows, and post-processing effects.
+- Improve renderer (forward+ or deferred) and add more features like shadows and reflections.
+- Adding more complex lighting models and shadows.
 - More complete input handling with action mapping and support for gamepads.
 - More complete scene management with entities, components, and systems.
 - State management for different game states (main menu, gameplay, pause, etc).
@@ -81,7 +86,6 @@ The engine is organized into several modules, each responsible for a specific as
 - Serialization for saving/loading scenes and assets.
 - Editor mode with real-time scene editing and asset management.
 - Memory and Performance profiling to identify bottlenecks and optimize critical paths. Using a profiler like Tracy would be very helpful for this.
-- Cube map support for skyboxes and reflections.
 - Event system improvements:
     1. Add a handled flag or priority to stop propagation (useful for UI capturing input).
     2. Add event categories to subscribe to groups (e.g., an input layer only listens to keyboard/mouse, editor tools only listen to window events).

@@ -6,6 +6,8 @@ Modern C++23 OpenGL4.6 engine that can be used as a starting point for more comp
 - glTF/glb model loading with tinygltf.
 - Frame UBO for per-frame camera and light data.
 - Directional sun + ambient + optional point lights.
+- Off-screen framebuffer with HDR (RGBA16F) and post-processing pipeline (tone mapping, inversion, grayscale, sharpen, blur, edge detect).
+- Cubemap skybox with attributeless rendering and depth trick.
 - Simple camera controller with mouse look and WASD movement.
 - Wireframe toggle and fullscreen mode.
 - Basic stats display with configurable update interval.
@@ -28,6 +30,7 @@ A demo scene is included with the Sponza model.
 - Mouse: Look
 - Space / Left Ctrl: Up / down
 - F3: Wireframe toggle
+- F4: Cycle post-process effect
 - F12: Toggle fullscreen
 - Esc: Quit
 
