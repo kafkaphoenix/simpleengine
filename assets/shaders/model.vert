@@ -24,7 +24,8 @@ struct PointLight {
 };
 
 layout(std140, binding = 0) uniform FrameData {
-    mat4 u_ViewProj;
+    mat4 u_View;
+    mat4 u_Projection;
     vec4 u_SunDir;
     vec4 u_SunColor;
     vec4 u_Ambient;
@@ -41,5 +42,5 @@ void main() {
     v_Tangent = normalize(normalMatrix * a_Tangent.xyz);
     v_BitangentSign = a_Tangent.w;
     v_Color = a_Color;
-    gl_Position = u_ViewProj * worldPos;
+    gl_Position = u_Projection * u_View * worldPos;
 }

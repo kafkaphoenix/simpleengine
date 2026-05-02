@@ -12,7 +12,8 @@ public:
     void processMouse(float xoffset, float yoffset);
     void processKeyboard(bool forward, bool backward, bool left, bool right, bool up, bool down, float deltaTime);
 
-    [[nodiscard]] glm::mat4 getViewProjection() const;
+    [[nodiscard]] glm::mat4 getViewMatrix() const;
+    [[nodiscard]] glm::mat4 getProjectionMatrix() const;
     [[nodiscard]] glm::vec3 getPosition() const { return m_Position; }
 
     void setAspectRatio(float aspectRatio) { m_AspectRatio = aspectRatio; }

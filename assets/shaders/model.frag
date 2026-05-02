@@ -27,7 +27,8 @@ struct PointLight {
 };
 
 layout(std140, binding = 0) uniform FrameData {
-    mat4 u_ViewProj;
+    mat4 u_View;
+    mat4 u_Projection;
     vec4 u_SunDir;
     vec4 u_SunColor;
     vec4 u_Ambient;
@@ -47,7 +48,7 @@ vec3 perturbNormal() {
     float tLen = length(T);
     // Degenerate tangent (parallel to normal or zero-length): skip perturbation
     // It happens when the model doesn't have tangents and we generate them from UVs,
-    // which can produce bad tangents for faces that are very small in UV space. 
+    // which can produce bad tangents for faces that are very small in UV space.
     // In that case, we just use the interpolated normal without perturbation, which is
     // better than the artifacts we'd get from a bad tangent.
     if (tLen < 1e-6) {

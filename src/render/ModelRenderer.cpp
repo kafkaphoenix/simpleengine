@@ -22,7 +22,8 @@ struct PointLightGpuData {
 };
 
 struct FrameUbo {
-    glm::mat4 viewProj;
+    glm::mat4 view;
+    glm::mat4 projection;
     glm::vec4 sunDir;
     glm::vec4 sunColor;
     glm::vec4 ambient;
@@ -211,7 +212,10 @@ std::vector<ModelRenderer::TransparentDraw> ModelRenderer::getSortedTransparentD
 }
 
 void ModelRenderer::updateFrameUbo(const se::scene::LightData& lights, const se::scene::Camera& camera) {
-    FrameUbo data{.viewProj = camera.getViewProjection()};
+    FrameUbo data{
+        .view = camera.getViewMatrix(),
+        .projection = camera.getProjectionMatrix(),
+    };
 
     if (!lights.directionalLights.empty()) {
         const auto& sun = lights.directionalLights[0];

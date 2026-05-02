@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <optional>
 
 #include "Framebuffer.h"
@@ -7,6 +8,11 @@
 #include "ModelRenderer.h"
 #include "PostProcessRenderer.h"
 #include "RenderStats.h"
+#include "SkyboxRenderer.h"
+
+namespace se::assets {
+class Cubemap;
+}
 
 namespace se::scene {
 class Camera;
@@ -25,6 +31,7 @@ public:
     void endFrame(const se::scene::LightData& lights);
 
     void resizeFramebuffer(int width, int height);
+    void setSkybox(std::shared_ptr<se::assets::Cubemap> cubemap);
     void toggleWireframe();
     void cyclePostEffect();
     void setPostEffect(PostEffect effect);
@@ -41,6 +48,7 @@ private:
     const se::scene::Camera* m_Camera = nullptr;
     Frustum m_Frustum{};
     ModelRenderer m_ModelRenderer;
+    SkyboxRenderer m_SkyboxRenderer;
     PostProcessRenderer m_PostProcess;
     RenderStats m_Stats;
     bool m_Wireframe = false;

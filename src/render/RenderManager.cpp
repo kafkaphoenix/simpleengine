@@ -10,7 +10,7 @@ RenderManager::RenderManager() { setupGlState(); }
 
 void RenderManager::beginFrame(const se::scene::Camera& camera) {
     m_Camera = &camera;
-    m_Frustum = calculateFrustum(m_Camera->getViewProjection());
+    m_Frustum = calculateFrustum(m_Camera->getProjectionMatrix() * m_Camera->getViewMatrix());
 
     if (m_SceneFbo) {
         m_SceneFbo->bind();
@@ -34,6 +34,9 @@ void RenderManager::endFrame(const se::scene::LightData& lights) {
     m_Stats.reset();
     m_ModelRenderer.flush(lights, *m_Camera, m_Stats);
 
+    // Skybox: rendered last (before post-process) as early-z discards occluded fragments
+    m_SkyboxRenderer.draw();
+
     if (m_SceneFbo) {
         m_PostProcess.execute(*m_SceneFbo);
     }
@@ -50,6 +53,10 @@ void RenderManager::resizeFramebuffer(int width, int height) {
     } else {
         m_SceneFbo->resize(width, height);
     }
+}
+
+void RenderManager::setSkybox(std::shared_ptr<se::assets::Cubemap> cubemap) {
+    m_SkyboxRenderer.setCubemap(std::move(cubemap));
 }
 
 void RenderManager::toggleWireframe() {

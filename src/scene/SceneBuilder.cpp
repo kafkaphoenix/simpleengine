@@ -10,24 +10,45 @@
 #include "Sun.h"
 #include "Transform.h"
 #include "assets/AssetManager.h"
+#include "assets/Cubemap.h"
 #include "core/Timer.h"
+#include "render/RenderManager.h"
 
 namespace se::scene {
 
-void SceneBuilder::build(Scene& scene, se::assets::AssetManager& assetManager) {
-    createSky(scene);
+void SceneBuilder::build(Scene& scene, se::assets::AssetManager& assetManager,
+                         se::render::RenderManager& renderManager) {
+    createSky(scene, assetManager, renderManager);
     loadModels(scene, assetManager);
 }
 
-void SceneBuilder::createSky(Scene& scene) {
+void SceneBuilder::createSky(Scene& scene, se::assets::AssetManager& assetManager,
+                             se::render::RenderManager& renderManager) {
     scene.addDirectionalLight(DirectionalLight{
         .direction = glm::normalize(glm::vec3(-0.5f, -1.0f, -0.3f)),
         .color = glm::vec3(1.0f, 0.95f, 0.9f),
         .intensity = 1.0f,
     });
 
-    scene.getSky().setAmbientColor(glm::vec3(1.0f, 1.0f, 1.0f));
-    scene.getSky().setAmbientStrength(0.7f);
+    auto& sky = scene.getSky();
+    sky.setAmbientColor(glm::vec3(1.0f, 1.0f, 1.0f));
+    sky.setAmbientStrength(0.7f);
+
+    // +X, -X, +Y, -Y, +Z, -Z)
+    const std::string dir = "assets/textures/skybox/";
+    sky.setCubemapFaces({
+        dir + "right.png",
+        dir + "left.png",
+        dir + "top.png",
+        dir + "bottom.png",
+        dir + "front.png",
+        dir + "back.png",
+    });
+
+    if (const auto& faces = sky.getCubemapFaces()) {
+        auto cubemap = std::make_shared<se::assets::Cubemap>(*faces);
+        renderManager.setSkybox(std::move(cubemap));
+    }
 }
 
 void SceneBuilder::loadModels(Scene& scene, se::assets::AssetManager& assetManager) {

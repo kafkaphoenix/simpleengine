@@ -10,7 +10,7 @@ namespace se::core {
 
 Level::Level(const Config& config, se::render::RenderManager& renderManager, se::assets::AssetManager& assetManager)
     : m_Player(config) {
-    se::scene::SceneBuilder::build(m_Scene, assetManager);
+    se::scene::SceneBuilder::build(m_Scene, assetManager, renderManager);
 }
 
 void Level::update(float deltaTime, const Input& input) { m_Player.update(deltaTime, input); }

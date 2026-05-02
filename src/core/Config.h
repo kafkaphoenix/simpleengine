@@ -26,8 +26,8 @@ public:
     };
 
     struct Camera {
-        float moveSpeed = 15.0f;
-        float fov = 60.0f;
+        float moveSpeed = 20.0f;
+        float fov = 80.0f;
         float nearPlane = 0.1f;
         // For big models like Sponza, we need a far plane of at least 500 to avoid clipping geometry.
         // We set it to 1000 by default to give some extra headroom, but it can be adjusted in the config if
