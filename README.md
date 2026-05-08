@@ -2,20 +2,17 @@
 Modern C++23 OpenGL4.6 engine that can be used as a starting point for more complex engines or games. It focuses on clarity and a small feature set while keeping modern practices.
 
 ## Engine Features
-- Instanced forward rendering, CPU batching by mesh/material with frustum culling.
-- glTF/glb model loading with tinygltf.
-- Frame UBO for per-frame camera and light data.
-- Directional sun + ambient + optional point lights.
-- Off-screen framebuffer with HDR (RGBA16F) and post-processing pipeline (tone mapping, inversion, grayscale, sharpen, blur, edge detect).
-- Cubemap skybox with attributeless rendering and depth trick.
+- OpenGL instanced forward renderer supporting CPU batching by mesh/material, and frustum culling.
+- Models with optional support for skeletal animation.
+- Diffuse lighting with multiple light sources.
 - Simple camera controller with mouse look and WASD movement.
-- Wireframe toggle and fullscreen mode.
 - Basic stats display with configurable update interval.
-- Simple event system for input handling.
-- Asset manager with caching for shaders, textures, materials and models using AssetHandle references.
-- Simple config system with INI sections.
+- Off-screen framebuffer with HDR (RGBA16F) and post-processing pipeline (tone mapping, inversion, grayscale, sharpen, blur, edge detect).
+- Simple event system for input handling and window events.
+- Asset manager with caching using lightweight handles.
+- Simple config system for runtime settings.
 
-For a more detailed look at the engine’s architecture and possible improvements, check out the [game-engine](https://kafkaphoenix.github.io/categories/game-engine/) blog section and the [architecture](docs/architecture.md).
+For a more detailed look at the engine’s architecture, check out the [game-engine](https://kafkaphoenix.github.io/categories/game-engine/) blog section and the [architecture](docs/architecture.md).
 
 ## Build & Run
 
@@ -33,11 +30,6 @@ A demo scene is included with the Sponza model.
 - F4: Cycle post-process effect
 - F12: Toggle fullscreen
 - Esc: Quit
-
-| Format | Load Time | Size | Textures |
-|--------|-----------|------|----------|
-| GLTF | ~5s | 325MB | External files |
-| GLB | ~3s | 325MB | Embedded |
 
 ![Sponza screenshot](docs/img/sponza_gltf.png)
 *Sponza GLTF model with external textures*

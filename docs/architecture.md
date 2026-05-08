@@ -1,9 +1,9 @@
 # Engine Architecture
 
 ## Project layout
-- assets: Shaders, textures, models, and materials.
+- assets: used for runtime assets like shaders, textures and models. These are loaded and copied to the build output by CMake.
 - build: CMake build output.
-- src: Engine code.
+- src: engine source code, organized into modules.
 - CMakeLists.txt: CMake configuration for the project, including dependencies and build targets.
 - .clang-format: ClangFormat configuration for code formatting.
 - .clang-tidy: ClangTidy configuration for static analysis.
@@ -14,12 +14,12 @@
 - .vscode/launch.json: VS Code launch configurations for debugging.
 
 ## Project dependencies
-- OpenGL + GLAD for rendering.
-- GLFW for windowing and input.
-- GLM for math.
-- stb_image for textures.
-- tinygltf for glTF models.
-- SimpleIni for config parsing.
+- [OpenGL](https://www.opengl.org/) + [GLAD](https://github.com/dav1dde/glad) for rendering.
+- [GLFW](https://www.glfw.org/) for creating windows and handling input.
+- [GLM](https://github.com/g-truc/glm) for math (vectors, matrices, etc).
+- [stb_image](https://github.com/nothings/stb/tree/master) for loading textures.
+- [tinygltf](https://github.com/syoyo/tinygltf) for loading glTF models.
+- [SimpleIni](https://github.com/brofield/simpleini) for configuration parsing.
 
 ## Modules
 The engine is organized into several modules, each responsible for a specific aspect of the engine's functionality. Below is an overview of the main modules and their responsibilities.
@@ -60,7 +60,7 @@ The engine is organized into several modules, each responsible for a specific as
 - RenderStats: Tracks draw calls, triangles for stats display.
 
 ### Scene
-- Scene: Owns the scene objects, lights (sun), and the sky.
+- Scene: Owns the scene objects, lights, and the sky.
 - SceneBuilder: Builds the demo scene loading the Sponza model and sets up the lights.
 - Light: Defines different light types (directional, point, and spot).
 - Sun: Directional light with color and intensity.
@@ -71,11 +71,9 @@ The engine is organized into several modules, each responsible for a specific as
 - Player: Camera controller with WASD movement and mouse look, no physics, collisions or model.
 
 ## Potential improvements
-- More complete glTF/glb support (animations, PBR materials, Draco compression, etc).
 - Better error handling and logging. Using a logging library like spdlog would be a good improvement.
 - More robust asset management with reference counting and unloading/reloading.
-- Improve renderer (forward+ or deferred) and add more features like shadows and reflections.
-- Adding more complex lighting models and shadows.
+- Improve renderer (forward+ or deferred) and add more features like shadows and reflections or more complex lighting logic.
 - More complete input handling with action mapping and support for gamepads.
 - More complete scene management with entities, components, and systems.
 - State management for different game states (main menu, gameplay, pause, etc).
