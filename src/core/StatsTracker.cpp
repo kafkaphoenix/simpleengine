@@ -29,8 +29,9 @@ std::optional<std::string> StatsTracker::update(float deltaTime, const se::rende
     float fps = static_cast<float>(m_Frames) / m_Timer;
     ProcessMemoryUsage mem = getProcessMemoryUsageKB();
     std::string stats =
-        std::format("{} FPS: {} RAM: {}/{}MB | Models: Draws {} Triangles {}", title, static_cast<int>(fps),
-                    mem.usedKB / 1024, mem.committedKB / 1024, renderStats.modelDrawCalls, renderStats.modelTriangles);
+        std::format("{} FPS: {} RAM: {}/{}MB | Models: Draws {} Triangles {} | Animated Models: Draws {} Triangles {}",
+                    title, static_cast<int>(fps), mem.usedKB / 1024, mem.committedKB / 1024, renderStats.modelDrawCalls,
+                    renderStats.modelTriangles, renderStats.animatedModelDrawCalls, renderStats.animatedModelTriangles);
 
     reset();
     return stats;

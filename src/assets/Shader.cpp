@@ -9,6 +9,9 @@
 #include <stdexcept>
 #include <string_view>
 #include <unordered_map>
+#include <utility>
+
+#include "render/UboBindings.h"
 
 namespace se::assets {
 
@@ -50,9 +53,12 @@ static void checkProgramLinking(unsigned int program) {
     }
 }
 
-Shader::Shader(std::string path) : Asset(std::move(path)), m_Id(glCreateProgram()) {
-    std::string vSrc = loadFile(std::format("{}.vert", m_Path));
-    std::string fSrc = loadFile(std::format("{}.frag", m_Path));
+Shader::Shader(std::string path) : Shader(path, path) {}
+
+Shader::Shader(std::string vertPath, std::string fragPath)
+    : Asset(vertPath), m_VertPath(std::move(vertPath)), m_FragPath(std::move(fragPath)), m_Id(glCreateProgram()) {
+    std::string vSrc = loadFile(std::format("{}.vert", m_VertPath));
+    std::string fSrc = loadFile(std::format("{}.frag", m_FragPath));
 
     const char* v = vSrc.c_str();
     const char* f = fSrc.c_str();
@@ -72,7 +78,7 @@ Shader::Shader(std::string path) : Asset(std::move(path)), m_Id(glCreateProgram(
     glLinkProgram(m_Id);
     checkProgramLinking(m_Id);
 
-    std::string progLabel = std::format("Shader Program [{}]", m_Path);
+    std::string progLabel = std::format("Shader Program [{}]", m_Name);
     glObjectLabel(GL_PROGRAM, m_Id, static_cast<GLsizei>(progLabel.size()), progLabel.c_str());
 
     glDeleteShader(vs);
@@ -80,7 +86,12 @@ Shader::Shader(std::string path) : Asset(std::move(path)), m_Id(glCreateProgram(
 
     unsigned int index = glGetUniformBlockIndex(m_Id, "FrameData");
     if (index != GL_INVALID_INDEX) {
-        glUniformBlockBinding(m_Id, index, 0);
+        glUniformBlockBinding(m_Id, index, std::to_underlying(se::render::UboBinding::Frame));
+    }
+
+    unsigned int boneIndex = glGetUniformBlockIndex(m_Id, "BoneData");
+    if (boneIndex != GL_INVALID_INDEX) {
+        glUniformBlockBinding(m_Id, boneIndex, std::to_underlying(se::render::UboBinding::Bones));
     }
 }
 
@@ -124,7 +135,7 @@ void Shader::validateLayout(const se::render::BufferLayout& layout, GLuint insta
     const auto& elements = layout.getElements();
 
     if (shaderVertexAttribs.size() != elements.size()) {
-        throw std::runtime_error(std::format("Shader '{}': layout has {} vertex attribs but shader expects {}", m_Path,
+        throw std::runtime_error(std::format("Shader '{}': layout has {} vertex attribs but shader expects {}", m_Name,
                                              elements.size(), shaderVertexAttribs.size()));
     }
 
@@ -133,11 +144,11 @@ void Shader::validateLayout(const se::render::BufferLayout& layout, GLuint insta
         auto it = shaderVertexAttribs.find(element.name);
         if (it == shaderVertexAttribs.end()) {
             throw std::runtime_error(
-                std::format("Shader '{}': layout element '{}' not found in shader", m_Path, element.name));
+                std::format("Shader '{}': layout element '{}' not found in shader", m_Name, element.name));
         }
         if (it->second != expectedLocation) {
             throw std::runtime_error(
-                std::format("Shader '{}': layout element '{}' expected at location {} but shader has it at {}", m_Path,
+                std::format("Shader '{}': layout element '{}' expected at location {} but shader has it at {}", m_Name,
                             element.name, expectedLocation, it->second));
         }
         ++expectedLocation;
@@ -163,6 +174,13 @@ void Shader::setMat4(std::string_view name, const float* value) {
     int loc = getUniformLocation(name);
     if (loc != -1) {
         glProgramUniformMatrix4fv(m_Id, loc, 1, GL_FALSE, value);
+    }
+}
+
+void Shader::setMat3(std::string_view name, const float* value) {
+    int loc = getUniformLocation(name);
+    if (loc != -1) {
+        glProgramUniformMatrix3fv(m_Id, loc, 1, GL_FALSE, value);
     }
 }
 

@@ -26,6 +26,14 @@ void RenderManager::submit(const se::scene::Renderable& renderable) {
     m_ModelRenderer.submit(renderable, m_Frustum);
 }
 
+void RenderManager::submitAnimated(const se::scene::Renderable& renderable, std::span<const glm::mat4> boneMatrices) {
+    if (!m_Camera) {
+        throw std::runtime_error("RenderManager: submitAnimated called before beginFrame!");
+    }
+
+    m_ModelRenderer.submitAnimated(renderable, m_Frustum, boneMatrices);
+}
+
 void RenderManager::endFrame(const se::scene::LightData& lights) {
     if (!m_Camera) {
         throw std::runtime_error("RenderManager: endFrame called before beginFrame!");

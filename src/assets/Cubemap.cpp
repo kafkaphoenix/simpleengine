@@ -47,7 +47,7 @@ Cubemap::Cubemap(const std::array<std::string, 6>& facePaths) : Asset(facePaths[
         stbi_image_free(data);
     }
 
-    std::string label = std::format("Cubemap [{}]", m_Path);
+    std::string label = std::format("Cubemap [{}]", m_Name);
     glObjectLabel(GL_TEXTURE, m_Id, static_cast<GLsizei>(label.size()), label.c_str());
 }
 

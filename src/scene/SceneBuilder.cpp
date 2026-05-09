@@ -20,6 +20,7 @@ void SceneBuilder::build(Scene& scene, se::assets::AssetManager& assetManager,
                          se::render::RenderManager& renderManager) {
     createSky(scene, assetManager, renderManager);
     loadModels(scene, assetManager);
+    loadAnimatedModels(scene, assetManager);
 }
 
 void SceneBuilder::createSky(Scene& scene, se::assets::AssetManager& assetManager,
@@ -53,12 +54,13 @@ void SceneBuilder::createSky(Scene& scene, se::assets::AssetManager& assetManage
 
 void SceneBuilder::loadModels(Scene& scene, se::assets::AssetManager& assetManager) {
     se::core::Timer timer;
-    const auto& model = assetManager.getOrLoadModel("assets/models/sponza_glb/sponza.glb", "assets/shaders/model");
+    auto shader = assetManager.getOrLoadShader("assets/shaders/model");
+    const auto& model = assetManager.getOrLoadModel("assets/models/sponza.glb", shader);
     std::println("Sponza loaded in {} ms", timer.millis());
-    submitModel(model, scene);
+    submitModel(model, Transform{.position = {0.0f, 0.0f, 0.0f}, .scale = {0.1f, 0.1f, 0.1f}}, scene);
 }
 
-void SceneBuilder::submitModel(const se::assets::ModelHandle& model, Scene& scene) {
+void SceneBuilder::submitModel(const se::assets::ModelHandle& model, const Transform& transform, Scene& scene) {
     auto modelPtr = model.get();
     if (!modelPtr) {
         throw std::runtime_error("Model handle is invalid");
@@ -72,8 +74,21 @@ void SceneBuilder::submitModel(const se::assets::ModelHandle& model, Scene& scen
         scene.addRenderable(Renderable{
             .mesh = sub.mesh.get(),
             .material = sub.material,
-            .transform = Transform{.position = {0.0f, 0.0f, 0.0f}, .scale = {0.1f, 0.1f, 0.1f}},
+            .transform = transform,
         });
     }
+}
+
+void SceneBuilder::loadAnimatedModels(Scene& scene, se::assets::AssetManager& assetManager) {
+    auto animShader = assetManager.getOrLoadShader("assets/shaders/animated_model", "assets/shaders/model");
+    se::core::Timer timer;
+    auto model = assetManager.getOrLoadModel("assets/models/fox.glb", animShader);
+    std::println("fox.glb loaded in {} ms", timer.millis());
+    submitAnimatedModel(model, Transform{.scale = {0.1f, 0.1f, 0.1f}}, "player_body", scene);
+}
+
+void SceneBuilder::submitAnimatedModel(const se::assets::ModelHandle& model, const Transform& transform,
+                                       std::string tag, Scene& scene) {
+    scene.addAnimatedActor(AnimatedActor(model, transform, std::move(tag)));
 }
 }  // namespace se::scene

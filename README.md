@@ -20,7 +20,7 @@ See the [build instructions](docs/build.md) for detailed steps on how to build a
 
 ## Demo Sponza scene
 
-A demo scene is included with the Sponza model.
+A demo scene is included with the Sponza model and an animated fox as the player character.
 
 ### Controls
 - WASD: Move
