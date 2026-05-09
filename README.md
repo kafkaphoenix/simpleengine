@@ -31,8 +31,5 @@ A demo scene is included with the Sponza model.
 - F12: Toggle fullscreen
 - Esc: Quit
 
-![Sponza screenshot](docs/img/sponza_gltf.png)
-*Sponza GLTF model with external textures*
-
-![Sponza screenshot](docs/img/sponza_glb.png)
-*Sponza GLB model with embedded textures*
+![Sponza screenshot](docs/img/sponza.png)
+*Sponza model*

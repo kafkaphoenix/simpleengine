@@ -61,7 +61,7 @@ The engine is organized into several modules, each responsible for a specific as
 
 ### Scene
 - Scene: Owns the scene objects, lights, and the sky.
-- SceneBuilder: Builds the demo scene loading the Sponza model and sets up the lights.
+- SceneBuilder: Builds the demo scene loading the Sponza model, setting up the lights, and the player.
 - Light: Defines different light types (directional, point, and spot).
 - Sun: Directional light with color and intensity.
 - Sky: Sky ambient light and optional cubemap skybox.
