@@ -32,14 +32,14 @@ Cubemap::Cubemap(const std::array<std::string, 6>& facePaths) : Asset(facePaths[
         int w = 0;
         int h = 0;
         int ch = 0;
-        unsigned char* data = stbi_load(facePaths[i].c_str(), &w, &h, &ch, channels);
+        unsigned char* data = stbi_load(facePaths.at(i).c_str(), &w, &h, &ch, channels);
         if (!data) {
-            throw std::runtime_error(std::format("Failed to load cubemap face: {}", facePaths[i]));
+            throw std::runtime_error(std::format("Failed to load cubemap face: {}", facePaths.at(i)));
         }
         if (w != width || h != height) {
             stbi_image_free(data);
             throw std::runtime_error(std::format("Cubemap face size mismatch: {} is {}x{}, expected {}x{}",
-                                                 facePaths[i], w, h, width, height));
+                                                 facePaths.at(i), w, h, width, height));
         }
 
         // For cubemaps, zoffset = face index (0=+X, 1=-X, 2=+Y, 3=-Y, 4=+Z, 5=-Z)

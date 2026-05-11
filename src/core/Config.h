@@ -62,11 +62,14 @@ private:
     static void readCamera(const CSimpleIniA& ini, Camera& c);
     static void readStats(const CSimpleIniA& ini, Stats& s);
 
-    Window m_Window;
-    Input m_Input;
-    Player m_Player;
-    Camera m_Camera;
-    Stats m_Stats;
+    // Default constructor is private to force use of load() method, which validates config values.
+    Config() = default;
+
+    Window m_Window{};
+    Input m_Input{};
+    Player m_Player{};
+    Camera m_Camera{};
+    Stats m_Stats{};
 };
 
 }  // namespace se::core

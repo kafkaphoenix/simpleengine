@@ -13,8 +13,9 @@ SkyboxRenderer::~SkyboxRenderer() {
 void SkyboxRenderer::setCubemap(std::shared_ptr<se::assets::Cubemap> cubemap) { m_Cubemap = std::move(cubemap); }
 
 void SkyboxRenderer::draw() {
-    if (!m_Cubemap)
+    if (!m_Cubemap) {
         return;
+    }
 
     // Depth trick: set depth to max (w component) in vertex shader, use LEQUAL depth test to draw skybox behind all
     // geometry with depth < 1.0
