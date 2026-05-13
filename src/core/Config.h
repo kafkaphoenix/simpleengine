@@ -1,11 +1,17 @@
 #pragma once
-#include <SimpleIni.h>
 
 #include <glm/glm.hpp>
 #include <string>
 #include <string_view>
+#include <toml++/toml.hpp>
 
 namespace se::core {
+
+enum class WindowMode : uint8_t {
+    Windowed,
+    Borderless,
+    Fullscreen
+};
 
 class Config {
 public:
@@ -16,8 +22,7 @@ public:
         int posX;
         int posY;
         bool vsync;
-        // "windowed", "borderless", or "fullscreen"
-        std::string mode;
+        WindowMode mode;
     };
 
     struct Input {
@@ -56,13 +61,15 @@ public:
     [[nodiscard]] const Stats& stats() const { return m_Stats; }
 
 private:
-    static void readWindow(const CSimpleIniA& ini, Window& w);
-    static void readInput(const CSimpleIniA& ini, Input& i);
-    static void readPlayer(const CSimpleIniA& ini, Player& p);
-    static void readCamera(const CSimpleIniA& ini, Camera& c);
-    static void readStats(const CSimpleIniA& ini, Stats& s);
+    static void readWindow(const toml::table& t, Window& w);
+    static void readInput(const toml::table& t, Input& i);
+    static void readPlayer(const toml::table& t, Player& p);
+    static void readCamera(const toml::table& t, Camera& c);
+    static void readStats(const toml::table& t, Stats& s);
 
-    // Default constructor is private to force use of load() method, which validates config values.
+    static WindowMode parseWindowMode(std::string_view s);
+
+    // Default constructor is private to prevent creating Config instances without loading from a file
     Config() = default;
 
     Window m_Window{};
@@ -72,4 +79,4 @@ private:
     Stats m_Stats{};
 };
 
-}  // namespace se::core
+} // namespace se::core

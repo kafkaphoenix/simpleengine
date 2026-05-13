@@ -19,7 +19,7 @@
 - [GLM](https://github.com/g-truc/glm) for math (vectors, matrices, etc).
 - [stb_image](https://github.com/nothings/stb/tree/master) for loading textures.
 - [tinygltf](https://github.com/syoyo/tinygltf) for loading glTF models.
-- [SimpleIni](https://github.com/brofield/simpleini) for configuration parsing.
+- [tomlplusplus](https://github.com/marzer/tomlplusplus) for configuration parsing.
 
 ## Modules
 The engine is organized into several modules, each responsible for a specific aspect of the engine's functionality. Below is an overview of the main modules and their responsibilities.
@@ -29,7 +29,7 @@ The engine is organized into several modules, each responsible for a specific as
 - Window: GLFW setup, OpenGL context, and event callbacks.
 - Input: Frame-based input state built from events.
 - EventBus: Small event queue used by window callbacks.
-- Config: Reads config.ini for runtime settings.
+- Config: Reads config.toml for runtime settings.
 - StatsTracker: Tracks and averages frame time, draw calls, etc.
 - Level: Owns the scene and the player. Loads the demo scene and updates the scene each frame. It also handles input for the player and the initial configuration of the scene.
 
