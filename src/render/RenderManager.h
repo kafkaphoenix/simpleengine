@@ -11,6 +11,7 @@
 #include "PostProcessRenderer.h"
 #include "RenderStats.h"
 #include "SkyboxRenderer.h"
+#include "core/Config.h"
 
 namespace se::assets {
 class Cubemap;
@@ -20,17 +21,17 @@ namespace se::scene {
 class Camera;
 struct LightData;
 struct Renderable;
+struct AnimatedRenderable;
 }  // namespace se::scene
 
 namespace se::render {
 
 class RenderManager {
 public:
-    RenderManager();
+    explicit RenderManager(const se::core::Config::Render& renderConfig);
 
     void beginFrame(const se::scene::Camera& camera);
     void submit(const se::scene::Renderable& renderable);
-    void submitAnimated(const se::scene::Renderable& renderable, std::span<const glm::mat4> boneMatrices);
     void endFrame(const se::scene::LightData& lights);
 
     void resizeFramebuffer(int width, int height);
@@ -46,6 +47,7 @@ public:
 
 private:
     void initFramebuffer(int width, int height);
+    void resolveMsaaToFinalFramebuffer() const;
     static void setupGlState();
 
     const se::scene::Camera* m_Camera = nullptr;
@@ -55,9 +57,11 @@ private:
     PostProcessRenderer m_PostProcess;
     RenderStats m_Stats;
     bool m_Wireframe = false;
+    int m_MsaaSamples = 4;
 
     // Off-screen rendering
-    std::optional<Framebuffer> m_SceneFbo;
+    std::optional<Framebuffer> m_SceneMsaaFbo;
+    std::optional<Framebuffer> m_SceneFinalFbo;
 };
 
 }  // namespace se::render

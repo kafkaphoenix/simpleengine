@@ -37,7 +37,7 @@ layout(std140, binding = 1) uniform BoneData {
 };
 
 uniform mat4 u_Model;
-uniform mat3 u_NormalMatrix;
+uniform mat3 u_Normal;
 
 void main() {
     // Compute skinning matrix from up to 4 bone influences
@@ -51,8 +51,8 @@ void main() {
     vec4 worldPos = u_Model * skinnedPos;
     v_WorldPos = worldPos.xyz;
     v_TexCoord = a_TexCoord;
-    v_Normal = normalize(u_NormalMatrix * skinnedNormal);
-    v_Tangent = normalize(u_NormalMatrix * skinnedTangent);
+    v_Normal = normalize(u_Normal * skinnedNormal);
+    v_Tangent = normalize(u_Normal * skinnedTangent);
     v_BitangentSign = a_Tangent.w;
     v_Color = a_Color;
     gl_Position = u_Projection * u_View * worldPos;

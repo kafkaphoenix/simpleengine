@@ -42,6 +42,8 @@ The engine is organized into several modules, each responsible for a specific as
 - Cubemap: Loads 6 face images into a cube map texture using DSA.
 - Material: Shader + textures + render state, matching glTF data. Lighting is simple diffuse.
 - Model: Loads glTF/glb into meshes and materials.
+- Animation: Stores skeletal animation clips, channels, and keyframes for animating bones over time.
+- Skeleton: Defines the bone hierarchy, inverse bind matrices, and rest pose transforms used for skinning and animation.
 
 ### Render
 - VertexArray: OpenGL VAO wrapper for vertex attribute setup.
@@ -67,8 +69,10 @@ The engine is organized into several modules, each responsible for a specific as
 - Sky: Sky ambient light and optional cubemap skybox.
 - Transform: Defines position, rotation, and scale.
 - Renderable: Defines a renderable object composed of a mesh, material, and transform.
-- Camera: Simple perspective camera with view/projection matrix calculation.
-- Player: Camera controller with WASD movement and mouse look, no physics, collisions or model.
+- Camera: Perspective camera with configurable projection and view matrix calculation.
+- Player: Third-person player controller with camera movement, mouse look, and animated character support.
+- Animator: Updates skeleton poses and generates bone matrices for skeletal animation.
+- AnimatedActor: Scene object combining a model, transform, and optional animator for skeletal animation rendering.
 
 ## Potential improvements
 - Better error handling and logging. Using a logging library like spdlog would be a good improvement.

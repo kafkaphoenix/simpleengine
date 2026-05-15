@@ -7,11 +7,7 @@
 
 namespace se::core {
 
-enum class WindowMode : uint8_t {
-    Windowed,
-    Borderless,
-    Fullscreen
-};
+enum class WindowMode : uint8_t { Windowed, Borderless, Fullscreen };
 
 class Config {
 public:
@@ -30,9 +26,11 @@ public:
     };
 
     struct Player {
-        float moveSpeed;
-        float sensitivity;
-        float fixedStep;
+        float walkSpeed;
+        float runSpeed;
+        float mouseSensitivity;
+        bool useFixedStep;
+        float fixedHz;
         float cameraHeight;
         float cameraDistance;
         glm::vec3 startPosition;
@@ -47,9 +45,13 @@ public:
 
     struct Stats {
         bool enabled;
-        // How often to update stats in seconds. A lower interval will update more frequently
-        // but may cause more performance overhead.
+        // How often to update stats in seconds (lower interval = more frequent updates, higher performance overhead).
         float refreshInterval;
+    };
+
+    struct Render {
+        int msaaSamples;
+        float anisotropy;
     };
 
     static Config load(std::string_view path);
@@ -59,6 +61,7 @@ public:
     [[nodiscard]] const Player& player() const { return m_Player; }
     [[nodiscard]] const Camera& camera() const { return m_Camera; }
     [[nodiscard]] const Stats& stats() const { return m_Stats; }
+    [[nodiscard]] const Render& render() const { return m_Render; }
 
 private:
     static void readWindow(const toml::table& t, Window& w);
@@ -66,6 +69,7 @@ private:
     static void readPlayer(const toml::table& t, Player& p);
     static void readCamera(const toml::table& t, Camera& c);
     static void readStats(const toml::table& t, Stats& s);
+    static void readRender(const toml::table& t, Render& r);
 
     static WindowMode parseWindowMode(std::string_view s);
 
@@ -77,6 +81,7 @@ private:
     Player m_Player{};
     Camera m_Camera{};
     Stats m_Stats{};
+    Render m_Render{};
 };
 
-} // namespace se::core
+}  // namespace se::core

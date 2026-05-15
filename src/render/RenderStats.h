@@ -3,12 +3,12 @@
 namespace se::render {
 
 struct RenderStats {
-    unsigned int modelDrawCalls = 0;
-    unsigned int modelTriangles = 0;
-    unsigned int animatedModelDrawCalls = 0;
-    unsigned int animatedModelTriangles = 0;
+    unsigned int modelsDrawCalls = 0;
+    unsigned int modelsTriangles = 0;
+    unsigned int animatedModelsDrawCalls = 0;
+    unsigned int animatedModelsTriangles = 0;
 
-    void reset() noexcept { modelDrawCalls = modelTriangles = animatedModelDrawCalls = animatedModelTriangles = 0; }
+    void reset() noexcept { modelsDrawCalls = modelsTriangles = animatedModelsDrawCalls = animatedModelsTriangles = 0; }
 };
 
 }  // namespace se::render
