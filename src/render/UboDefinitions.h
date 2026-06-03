@@ -32,6 +32,7 @@ struct alignas(16) FrameUbo {
     glm::vec4 sunDir;
     glm::vec4 sunColor;
     glm::vec4 ambient;
+    glm::vec4 cameraPos;
     glm::ivec4 lightCounts;
     std::array<PointLightGpuData, 4> pointLights;
 };

@@ -11,7 +11,6 @@
 #include "PostProcessRenderer.h"
 #include "RenderStats.h"
 #include "SkyboxRenderer.h"
-#include "core/Config.h"
 
 namespace se::assets {
 class Cubemap;
@@ -24,11 +23,15 @@ struct Renderable;
 struct AnimatedRenderable;
 }
 
+namespace se::core {
+class Config;
+}
+
 namespace se::render {
 
 class RenderManager {
 public:
-    explicit RenderManager(const se::core::config::Render& renderConfig);
+    explicit RenderManager(const se::core::Config& config);
 
     void beginFrame(const se::scene::Camera& camera);
     void submit(const se::scene::Renderable& renderable);
