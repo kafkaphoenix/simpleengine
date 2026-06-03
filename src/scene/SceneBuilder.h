@@ -3,6 +3,7 @@
 #include <optional>
 #include <string>
 
+#include "AnimationController.h"
 #include "assets/AssetHandle.h"
 
 namespace se::assets {
@@ -30,7 +31,8 @@ private:
                           se::render::RenderManager& renderManager);
     static void loadModels(Scene& scene, se::assets::AssetManager& assetManager);
     static void submitModel(const se::assets::ModelHandle& model, const Transform& transform, Scene& scene,
-                            std::optional<std::string> animatedTag = std::nullopt);
+                            std::optional<std::string> animatedTag = std::nullopt,
+                            std::optional<AnimationController::LocomotionClips> locomotionClips = std::nullopt);
 };
 
 }  // namespace se::scene

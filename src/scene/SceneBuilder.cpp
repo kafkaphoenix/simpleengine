@@ -62,11 +62,13 @@ void SceneBuilder::loadModels(Scene& scene, se::assets::AssetManager& assetManag
     auto animShader = assetManager.getOrLoadShader("assets/shaders/animated_model", "assets/shaders/model");
     auto handle = assetManager.getOrLoadModel("assets/models/fox.glb", animShader);
     std::println("Animated models loaded in {} ms", timer.millis());
-    submitModel(handle, Transform{.scale = {0.1f, 0.1f, 0.1f}}, scene, "player_body");
+    submitModel(handle, Transform{.scale = {0.1f, 0.1f, 0.1f}}, scene, "player_body",
+                AnimationController::LocomotionClips{.idle = "Survey", .walk = "Walk", .run = "Run"});
 }
 
 void SceneBuilder::submitModel(const se::assets::ModelHandle& handle, const Transform& transform, Scene& scene,
-                               std::optional<std::string> animatedTag) {
+                               std::optional<std::string> animatedTag,
+                               std::optional<AnimationController::LocomotionClips> locomotionClips) {
     auto model = handle.get();
     if (!model) {
         throw std::runtime_error("Model handle is invalid");
@@ -74,7 +76,9 @@ void SceneBuilder::submitModel(const se::assets::ModelHandle& handle, const Tran
 
     AnimatedInstance* animatedInstance = nullptr;
     if (animatedTag.has_value()) {
-        animatedInstance = &scene.addAnimatedInstance(AnimatedInstance(handle, transform, std::move(*animatedTag)));
+        animatedInstance = &scene.addAnimatedInstance(
+            AnimatedInstance(handle, transform, std::move(*animatedTag),
+                             locomotionClips.value_or(AnimationController::LocomotionClips{})));
     }
 
     for (const auto& sub : model->getSubMeshes()) {
@@ -83,8 +87,8 @@ void SceneBuilder::submitModel(const se::assets::ModelHandle& handle, const Tran
         }
 
         if (animatedInstance) {
-            scene.addRenderable(
-                Renderable::makeAnimated(sub.mesh.get(), sub.material, animatedInstance->transform, animatedInstance->animator));
+            scene.addRenderable(Renderable::makeAnimated(sub.mesh.get(), sub.material, animatedInstance->transform,
+                                                         animatedInstance->animator));
         } else {
             scene.addRenderable(Renderable::makeStatic(sub.mesh.get(), sub.material, transform));
         }

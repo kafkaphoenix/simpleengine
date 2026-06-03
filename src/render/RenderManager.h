@@ -22,13 +22,13 @@ class Camera;
 struct LightData;
 struct Renderable;
 struct AnimatedRenderable;
-}  // namespace se::scene
+}
 
 namespace se::render {
 
 class RenderManager {
 public:
-    explicit RenderManager(const se::core::Config::Render& renderConfig);
+    explicit RenderManager(const se::core::config::Render& renderConfig);
 
     void beginFrame(const se::scene::Camera& camera);
     void submit(const se::scene::Renderable& renderable);
@@ -58,8 +58,6 @@ private:
     RenderStats m_Stats;
     bool m_Wireframe = false;
     int m_MsaaSamples = 4;
-
-    // Off-screen rendering
     std::optional<Framebuffer> m_SceneMsaaFbo;
     std::optional<Framebuffer> m_SceneFinalFbo;
 };

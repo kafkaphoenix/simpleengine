@@ -31,7 +31,8 @@ struct Skeleton {
     // Used to match animation channels to bones.
     std::vector<int> nodeToJoint;
 
-    // Builds the final palette of bone matrices for skinning by combining the current pose with the inverse bind matrices.
+    // Builds the final palette of bone matrices for skinning by combining the current pose with the inverse bind
+    // matrices.
     void buildPalette(const Pose& pose, BonePalette& outPalette) const;
 };
 
