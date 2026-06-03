@@ -31,7 +31,7 @@ The engine is organized into several modules, each responsible for a specific as
 - EventBus: Small event queue used by window callbacks.
 - Config: Reads config.toml for runtime settings.
 - StatsTracker: Tracks and averages frame time, draw calls, etc.
-- Level: Owns the scene and the player. Loads the demo scene and updates the scene each frame. It also handles input for the player and the initial configuration of the scene.
+- Level: Owns the scene and the player. Loads the demo scene and updates player + scene systems each frame.
 
 ### Assets
 - Asset: Minimal base class with a path.
@@ -40,10 +40,10 @@ The engine is organized into several modules, each responsible for a specific as
 - Shader: GLSL program compilation and uniform updates.
 - Texture: Image loading and OpenGL texture setup.
 - Cubemap: Loads 6 face images into a cube map texture using DSA.
-- Material: Shader + textures + render state, matching glTF data. Lighting is simple diffuse.
+- Material: Shader + textures + render state, matching glTF material data.
 - Model: Loads glTF/glb into meshes and materials.
-- Animation: Stores skeletal animation clips, channels, and keyframes for animating bones over time.
-- Skeleton: Defines the bone hierarchy, inverse bind matrices, and rest pose transforms used for skinning and animation.
+- Animation: Stores skeletal clips/channels/keyframes and samples a clip into a local-space pose.
+- Skeleton: Defines bone hierarchy, inverse bind matrices, and rest pose; builds final skinning palette matrices from a sampled pose.
 
 ### Render
 - VertexArray: OpenGL VAO wrapper for vertex attribute setup.
@@ -51,14 +51,14 @@ The engine is organized into several modules, each responsible for a specific as
 - Buffer: OpenGL buffer wrapper for vertex/index data.
 - Mesh: Vertex/index data loaded from models, with OpenGL buffers and VAO setup.
 - UniformBuffer: OpenGL UBO wrapper for per-frame data (camera, lights).
-- Framebuffer: Off-screen render target with color textures (HDR) and depth. Supports multiple render targets and depth-only FBOs.
+- Framebuffer: Off-screen render target with color/depth attachments. Supports single-sample, MSAA, and HDR configurations.
 - Frustum: Simple CPU frustum culling for renderables outside the camera view.
-- RenderManager: Orchestrates render passes (geometry, skybox, post-process) and framebuffer management.
-- ModelRenderer: Handles submitting model renderables to the RenderQueue and grouping them for efficient rendering.
+- RenderManager: Orchestrates passes (geometry, skybox, post-process), framebuffer management, and MSAA resolve.
+- ModelRenderer: Submits renderables to the RenderQueue and renders opaque and transparent passes for static and animated items.
 - SkyboxRenderer: Renders a cubemap skybox with attributeless cube and depth trick. Uses shared frame UBO.
 - PostProcessRenderer: Full-screen post-processing pass with selectable effects (tone map, inversion, grayscale, sharpen, blur, edge detect).
 - ScreenQuad: Attributeless full-screen triangle for post-processing.
-- RenderQueue: Collects renderables each frame to be processed by each renderer at the end of the frame.
+- RenderQueue: Collects renderables each frame and classifies them into static opaque batches, animated opaque draws, and depth-sorted transparent draws.
 - RenderStats: Tracks draw calls, triangles for stats display.
 
 ### Scene
@@ -68,18 +68,26 @@ The engine is organized into several modules, each responsible for a specific as
 - Sun: Directional light with color and intensity.
 - Sky: Sky ambient light and optional cubemap skybox.
 - Transform: Defines position, rotation, and scale.
-- Renderable: Defines a renderable object composed of a mesh, material, and transform.
-- Camera: Perspective camera with configurable projection and view matrix calculation.
+- Renderable: Defines a renderable mesh/material with either static pose data or dynamic transform/animator references.
+- Camera: Perspective camera with configurable projection/view settings.
 - Player: Third-person player controller with camera movement, mouse look, and animated character support.
 - Animator: Updates skeleton poses and generates bone matrices for skeletal animation.
-- AnimatedActor: Scene object combining a model, transform, and optional animator for skeletal animation rendering.
+- AnimationController: High-level locomotion state controller driving Animator clip transitions.
+- AnimatedInstance: Runtime scene object combining model, transform, animator, controller, and tag.
 
-## Potential improvements
+## Frame render order
+1. Static opaque (instanced where possible, grouped by material/mesh to reduce state changes).
+2. Animated opaque (non-instanced, per-draw bone palette update).
+3. Transparent (single depth-sorted stream, mixed static and animated).
+4. Skybox.
+5. MSAA resolve (if enabled) and post-process full-screen pass.
+
+## Potential improvements ideas
 - Better error handling and logging. Using a logging library like spdlog would be a good improvement.
 - More robust asset management with reference counting and unloading/reloading.
 - Improve renderer (forward+ or deferred) and add more features like shadows and reflections or more complex lighting logic.
 - More complete input handling with action mapping and support for gamepads.
-- More complete scene management with entities, components, and systems.
+- More complete scene management with entities, components, and systems (ECS architecture).
 - State management for different game states (main menu, gameplay, pause, etc).
 - Debug rendering and tools for inspecting the scene and assets. Using a library like ImGui would be great for this.
 - UI system for in-game menus, HUD, etc. Using RmlUI or similar would be a good option.

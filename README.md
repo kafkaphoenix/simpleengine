@@ -2,12 +2,12 @@
 Modern C++23 OpenGL4.6 engine that can be used as a starting point for more complex engines or games. It focuses on clarity and a small feature set while keeping modern practices.
 
 ## Engine Features
-- OpenGL instanced forward renderer supporting CPU batching by mesh/material, and frustum culling.
+- OpenGL forward renderer with static instancing (mesh/material batching), animated model support, and frustum culling.
 - Models with optional support for skeletal animation.
 - Diffuse lighting with multiple light sources.
-- Simple camera controller with mouse look and WASD movement.
+- Third-person player controller with mouse look and character locomotion state.
 - Basic stats display with configurable update interval.
-- Off-screen framebuffer with HDR (RGBA16F) and post-processing pipeline (tone mapping, inversion, grayscale, sharpen, blur, edge detect).
+- Off-screen HDR framebuffer pipeline with MSAA resolve and post-processing (tone map, inversion, grayscale, sharpen, blur, edge detect).
 - Simple event system for input handling and window events.
 - Asset manager with caching using lightweight handles.
 - Simple config system for runtime settings.
@@ -24,12 +24,26 @@ A demo scene is included with the Sponza model and an animated fox as the player
 
 ### Controls
 - WASD: Move
+- Left Shift: Run
 - Mouse: Look
 - Space / Left Ctrl: Up / down
 - F3: Wireframe toggle
 - F4: Cycle post-process effect
 - F12: Toggle fullscreen
 - Esc: Quit
+
+## Runtime Config
+
+Settings live in `config.toml` and are grouped by subsystem:
+
+- `window`: title, size, position, vsync, mode
+- `player`: spawn position
+- `characterController`: walk/run speeds, mouse sensitivity/smoothing, fixed-step options
+- `camera`: projection settings (FOV, near/far, aspect)
+- `thirdPersonCameraController`: follow distance and height
+- `render`: MSAA sample count and anisotropy level
+- `postProcess`: exposure
+- `stats`: enable flag and update interval
 
 ![Sponza screenshot](docs/img/sponza.png)
 *Sponza model*
