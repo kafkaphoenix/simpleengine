@@ -14,7 +14,6 @@ Cubemap::Cubemap(const std::array<std::string, 6>& facePaths) : Asset(facePaths[
     int width = 0;
     int height = 0;
     int channels = 0;
-    stbi_set_flip_vertically_on_load(0);  // cubemap faces are NOT flipped
     unsigned char* probe = stbi_load(facePaths[0].c_str(), &width, &height, &channels, 0);
     if (!probe) {
         throw std::runtime_error(std::format("Failed to load cubemap face: {}", facePaths[0]));

@@ -41,7 +41,7 @@ The engine is organized into several modules, each responsible for a specific as
 - Texture: Image loading and OpenGL texture setup.
 - Cubemap: Loads 6 face images into a cube map texture using DSA.
 - Material: Shader + textures + render state, matching glTF material data.
-- Model: Loads glTF/glb into meshes and materials.
+- Model: Loads glTF/glb into meshes and materials, generates missing normals/tangents, and normalizes skinning weights when needed.
 - Animation: Stores skeletal clips/channels/keyframes and samples a clip into a local-space pose.
 - Skeleton: Defines bone hierarchy, inverse bind matrices, and rest pose; builds final skinning palette matrices from a sampled pose.
 
@@ -58,7 +58,7 @@ The engine is organized into several modules, each responsible for a specific as
 - SkyboxRenderer: Renders a cubemap skybox with attributeless cube and depth trick. Uses shared frame UBO.
 - PostProcessRenderer: Full-screen post-processing pass with selectable effects (tone map, inversion, grayscale, sharpen, blur, edge detect).
 - ScreenQuad: Attributeless full-screen triangle for post-processing.
-- RenderQueue: Collects renderables each frame and classifies them into static opaque batches, animated opaque draws, and depth-sorted transparent draws.
+- RenderQueue: Collects renderables each frame and classifies them into static opaque batches, animated opaque draws, OIT transparent draws, and depth-sorted transparent draws.
 - RenderStats: Tracks draw calls, triangles for stats display.
 
 ### Scene
@@ -78,9 +78,13 @@ The engine is organized into several modules, each responsible for a specific as
 ## Frame render order
 1. Static opaque (instanced where possible, grouped by material/mesh to reduce state changes).
 2. Animated opaque (non-instanced, per-draw bone palette update).
-3. Transparent (single depth-sorted stream, mixed static and animated).
-4. Skybox.
-5. MSAA resolve (if enabled) and post-process full-screen pass.
+3. Skybox.
+4. If MSAA is enabled: resolve scene color + depth from MSAA buffer to single-sample final buffer.
+5. Transparent OIT pass (for materials tagged as OIT; useful for particle-like and intersecting transparent effects where strict sort order is hard).
+6. Transparent depth-sorted pass (for materials tagged as sorted, and also the default fallback when no transparency tag is provided in glTF extras).
+7. Post-process full-screen pass.
+
+Note: OIT accum/reveal attachments are rendered on the single-sample final buffer (not MSAA-resolved) to avoid incorrect averaging artifacts.
 
 ## Potential improvements ideas
 - Better error handling and logging. Using a logging library like spdlog would be a good improvement.

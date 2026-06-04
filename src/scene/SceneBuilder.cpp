@@ -35,12 +35,12 @@ void SceneBuilder::createSky(Scene& scene, se::assets::AssetManager& assetManage
     scene.addDirectionalLight(DirectionalLight{
         .direction = glm::normalize(glm::vec3(0.5f, 0.5f, 0.3f)),  // opposite of sun
         .color = glm::vec3(0.6f, 0.65f, 0.75f),                    // cool fill
-        .intensity = 0.2f,
+        .intensity = 0.15f,
     });
 
     auto& sky = scene.getSky();
     sky.setAmbientColor(glm::vec3(0.5f, 0.55f, 0.65f));  // cool blue-grey
-    sky.setAmbientIntensity(0.40f);
+    sky.setAmbientIntensity(0.10f);
 
     // +X, -X, +Y, -Y, +Z, -Z)
     const std::string dir = "assets/textures/skybox/";

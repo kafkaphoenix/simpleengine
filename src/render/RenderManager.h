@@ -40,6 +40,7 @@ public:
     void resizeFramebuffer(int width, int height);
     void setSkybox(std::shared_ptr<se::assets::Cubemap> cubemap);
     void toggleWireframe();
+    void cycleRenderDebugView();
     void cyclePostEffect();
     void setPostEffect(PostEffect effect);
     void setBatchSize(size_t maxInstances);
@@ -50,7 +51,9 @@ public:
 
 private:
     void initFramebuffer(int width, int height);
-    void resolveMsaaToFinalFramebuffer() const;
+    static void clearSceneFramebuffer(const Framebuffer& framebuffer);
+    static void clearTransparencyTargets(const Framebuffer& framebuffer);
+    void resolveMsaaSceneToFinalFramebuffer() const;
     static void setupGlState();
 
     const se::scene::Camera* m_Camera = nullptr;

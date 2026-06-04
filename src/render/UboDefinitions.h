@@ -11,10 +11,7 @@
 namespace se::render {
 
 // Must stay in sync with `layout(std140, binding = N)` in GLSL shaders.
-enum class UboBinding : uint8_t {
-    Frame = 0,
-    Bones = 1,
-};
+enum class UboBinding : uint8_t { Frame = 0, Bones };
 
 inline constexpr std::array<std::pair<std::string_view, UboBinding>, 2> UBO_BINDINGS = {{
     {"FrameData", UboBinding::Frame},
