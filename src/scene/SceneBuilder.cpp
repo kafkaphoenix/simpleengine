@@ -10,7 +10,6 @@
 #include "Sun.h"
 #include "Transform.h"
 #include "assets/AssetManager.h"
-#include "assets/Cubemap.h"
 #include "core/Timer.h"
 #include "render/RenderManager.h"
 
@@ -54,8 +53,8 @@ void SceneBuilder::createSky(Scene& scene, se::assets::AssetManager& assetManage
     });
 
     if (const auto& faces = sky.getCubemapFaces()) {
-        auto cubemap = std::make_shared<se::assets::Cubemap>(*faces);
-        renderManager.setSkybox(std::move(cubemap));
+        auto handle = assetManager.getOrLoadCubemap(*faces);
+        renderManager.setSkybox(handle);
     }
 }
 

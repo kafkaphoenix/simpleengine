@@ -5,7 +5,7 @@
 namespace se::assets {
 
 template <typename T>
-std::shared_ptr<T> AssetHandle<T>::get() const {
+T* AssetHandle<T>::get() const {
     if (!isValid() || m_AssetManager == nullptr) {
         return nullptr;
     }
@@ -16,5 +16,6 @@ template class AssetHandle<Model>;
 template class AssetHandle<Shader>;
 template class AssetHandle<Texture>;
 template class AssetHandle<Material>;
+template class AssetHandle<Cubemap>;
 
 }  // namespace se::assets

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <glm/mat4x4.hpp>
-#include <memory>
 #include <optional>
 #include <span>
 
@@ -11,10 +10,7 @@
 #include "PostProcessRenderer.h"
 #include "RenderStats.h"
 #include "SkyboxRenderer.h"
-
-namespace se::assets {
-class Cubemap;
-}
+#include "assets/AssetHandle.h"
 
 namespace se::scene {
 class Camera;
@@ -38,7 +34,7 @@ public:
     void endFrame(const se::scene::LightData& lights);
 
     void resizeFramebuffer(int width, int height);
-    void setSkybox(std::shared_ptr<se::assets::Cubemap> cubemap);
+    void setSkybox(se::assets::CubemapHandle cubemap);
     void toggleWireframe();
     void cycleRenderDebugView();
     void cyclePostEffect();

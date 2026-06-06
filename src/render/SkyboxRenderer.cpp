@@ -1,5 +1,7 @@
 #include "SkyboxRenderer.h"
 
+#include "assets/Cubemap.h"
+
 namespace se::render {
 
 SkyboxRenderer::SkyboxRenderer() : m_Shader("assets/shaders/skybox") { setupSampler(); }
@@ -10,10 +12,11 @@ SkyboxRenderer::~SkyboxRenderer() {
     }
 }
 
-void SkyboxRenderer::setCubemap(std::shared_ptr<se::assets::Cubemap> cubemap) { m_Cubemap = std::move(cubemap); }
+void SkyboxRenderer::setCubemap(se::assets::CubemapHandle cubemap) { m_Cubemap = std::move(cubemap); }
 
 void SkyboxRenderer::draw() {
-    if (!m_Cubemap) {
+    auto cubemap = m_Cubemap.get();
+    if (!cubemap) {
         return;
     }
 
@@ -23,7 +26,7 @@ void SkyboxRenderer::draw() {
 
     m_Shader.bind();
 
-    glBindTextureUnit(0, m_Cubemap->id());
+    glBindTextureUnit(0, cubemap->id());
     glBindSampler(0, m_Sampler);
 
     m_Vao.bind();

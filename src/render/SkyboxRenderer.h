@@ -1,10 +1,8 @@
 #pragma once
 #include <glad/glad.h>
 
-#include <memory>
-
 #include "VertexArray.h"
-#include "assets/Cubemap.h"
+#include "assets/AssetHandle.h"
 #include "assets/Shader.h"
 
 namespace se::render {
@@ -22,10 +20,10 @@ public:
     SkyboxRenderer(SkyboxRenderer&&) = delete;
     SkyboxRenderer& operator=(SkyboxRenderer&&) = delete;
 
-    void setCubemap(std::shared_ptr<se::assets::Cubemap> cubemap);
+    void setCubemap(se::assets::CubemapHandle cubemap);
     void draw();
 
-    [[nodiscard]] bool hasCubemap() const { return m_Cubemap != nullptr; }
+    [[nodiscard]] bool hasCubemap() const { return m_Cubemap.isValid(); }
 
 private:
     void setupSampler();
@@ -33,7 +31,7 @@ private:
     se::assets::Shader m_Shader;
     VertexArray m_Vao;  // empty VAO for attributeless cube draw
     GLuint m_Sampler = 0;
-    std::shared_ptr<se::assets::Cubemap> m_Cubemap;
+    se::assets::CubemapHandle m_Cubemap;
 };
 
 }  // namespace se::render

@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <cstdint>
 #include <format>
 #include <functional>
@@ -9,9 +10,11 @@
 #include <string_view>
 #include <typeindex>
 #include <unordered_map>
+#include <utility>
 
 #include "Asset.h"
 #include "AssetHandle.h"
+#include "Cubemap.h"
 #include "Material.h"
 #include "Model.h"
 #include "Shader.h"
@@ -48,8 +51,8 @@ public:
         }
 
         UUID uuid = UUID();
-        auto tex = std::make_shared<Texture>(data, width, height, channels);
-        m_Assets[uuid] = tex;
+        auto tex = std::make_unique<Texture>(data, width, height, channels);
+        m_Assets[uuid] = std::move(tex);
         m_PathToId[path] = uuid;
         return {this, uuid};
     }
@@ -62,8 +65,22 @@ public:
         }
 
         UUID id = UUID();
-        auto tex = std::make_shared<Texture>(data, width, height, channels);
-        m_Assets[id] = tex;
+        auto tex = std::make_unique<Texture>(data, width, height, channels);
+        m_Assets[id] = std::move(tex);
+        m_PathToId[key] = id;
+        return {this, id};
+    }
+    CubemapHandle getOrLoadCubemap(const std::array<std::string, 6>& facePaths) {
+        std::string key = std::format("cubemap_{}_{}_{}_{}_{}_{}", facePaths[0], facePaths[1], facePaths[2],
+                                      facePaths[3], facePaths[4], facePaths[5]);
+        auto it = m_PathToId.find(key);
+        if (it != m_PathToId.end()) {
+            return {this, it->second};
+        }
+
+        UUID id = UUID();
+        auto cubemap = std::make_unique<Cubemap>(facePaths);
+        m_Assets[id] = std::move(cubemap);
         m_PathToId[key] = id;
         return {this, id};
     }
@@ -76,11 +93,16 @@ public:
     void removeShader(std::string_view shaderPath) { removeAssetByPath(std::format("shader_{}", shaderPath)); }
     void removeModel(std::string_view gltfPath) { removeAssetByPath(std::format("model_{}", gltfPath)); }
     void removeTexture(std::string_view path) { removeAssetByPath(std::format("texture_{}", path)); }
+    void removeCubemap(const std::array<std::string, 6>& facePaths) {
+        removeAssetByPath(std::format("cubemap_{}_{}_{}_{}_{}_{}", facePaths[0], facePaths[1], facePaths[2],
+                                      facePaths[3], facePaths[4], facePaths[5]));
+    }
     void removeMaterial(std::string_view name) { removeAssetByPath(std::format("material_{}", name)); }
 
     ShaderHandle getShader(UUID id) { return getAssetById<Shader>(id); }
     ModelHandle getModel(UUID id) { return getAssetById<Model>(id); }
     TextureHandle getTexture(UUID id) { return getAssetById<Texture>(id); }
+    CubemapHandle getCubemap(UUID id) { return getAssetById<Cubemap>(id); }
     MaterialHandle getMaterial(UUID id) { return getAssetById<Material>(id); }
 
     void clear() {
@@ -96,8 +118,8 @@ private:
             return AssetHandle<T>(this, it->second);
         }
         UUID id = UUID();
-        auto asset = std::make_shared<T>(std::forward<Args>(args)...);
-        m_Assets[id] = asset;
+        auto asset = std::make_unique<T>(std::forward<Args>(args)...);
+        m_Assets[id] = std::move(asset);
         m_PathToId[std::string(path)] = id;
         return AssetHandle<T>(this, id);
     }
@@ -120,17 +142,18 @@ private:
     }
 
     template <typename T>
-    std::shared_ptr<T> getAssetPtr(UUID id) const {
+    T* getAssetPtr(UUID id) const {
         auto it = m_Assets.find(id);
         if (it != m_Assets.end()) {
-            return std::static_pointer_cast<T>(it->second);
+            // Caller must ensure type T matches the actual asset type, otherwise this cast is unsafe.
+            return static_cast<T*>(it->second.get());
         }
         return nullptr;
     }
 
     // No multithreading support, so no need for mutexes. If you add multithreading, you'll need to add mutexes to
     // protect these maps.
-    std::unordered_map<UUID, std::shared_ptr<Asset>> m_Assets;
+    std::unordered_map<UUID, std::unique_ptr<Asset>> m_Assets;
     std::unordered_map<std::string, UUID, StringHash, std::equal_to<>> m_PathToId;
 
     template <typename T>

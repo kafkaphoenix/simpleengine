@@ -1,5 +1,4 @@
 #pragma once
-#include <memory>
 
 #include "UUID.h"
 
@@ -11,6 +10,7 @@ class Model;
 class Shader;
 class Texture;
 class Material;
+class Cubemap;
 
 template <typename T>
 class AssetHandle {
@@ -18,7 +18,7 @@ public:
     AssetHandle() = default;
     AssetHandle(AssetManager* manager, UUID id) : m_AssetManager(manager), m_Id(id) {}
 
-    [[nodiscard]] std::shared_ptr<T> get() const;
+    [[nodiscard]] T* get() const;
 
     [[nodiscard]] bool isValid() const { return m_AssetManager != nullptr && m_Id.value() != 0; }
     [[nodiscard]] UUID id() const { return m_Id; }
@@ -37,6 +37,7 @@ using ModelHandle = AssetHandle<Model>;
 using ShaderHandle = AssetHandle<Shader>;
 using TextureHandle = AssetHandle<Texture>;
 using MaterialHandle = AssetHandle<Material>;
+using CubemapHandle = AssetHandle<Cubemap>;
 
 }  // namespace se::assets
 

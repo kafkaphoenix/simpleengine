@@ -86,9 +86,7 @@ void RenderManager::resizeFramebuffer(int width, int height) {
     }
 }
 
-void RenderManager::setSkybox(std::shared_ptr<se::assets::Cubemap> cubemap) {
-    m_SkyboxRenderer.setCubemap(std::move(cubemap));
-}
+void RenderManager::setSkybox(se::assets::CubemapHandle cubemap) { m_SkyboxRenderer.setCubemap(std::move(cubemap)); }
 
 void RenderManager::toggleWireframe() {
     m_Wireframe = !m_Wireframe;
