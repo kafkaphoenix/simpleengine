@@ -12,10 +12,10 @@ SkyboxRenderer::~SkyboxRenderer() {
     }
 }
 
-void SkyboxRenderer::setCubemap(se::assets::CubemapHandle cubemap) { m_Cubemap = std::move(cubemap); }
+void SkyboxRenderer::setCubemap(se::assets::CubemapHandle cubemap) { m_Cubemap = cubemap; }
 
 void SkyboxRenderer::draw() {
-    auto cubemap = m_Cubemap.get();
+    auto* cubemap = m_Cubemap.get();
     if (!cubemap) {
         return;
     }
