@@ -2,9 +2,9 @@
 
 #include <glad/glad.h>
 
-#include <algorithm>
 #include <stdexcept>
 
+#include "SceneRenderAdapters.h"
 #include "core/Config.h"
 
 namespace se::render {
@@ -17,8 +17,8 @@ RenderManager::RenderManager(const se::core::Config& config)
 }
 
 void RenderManager::beginFrame(const se::scene::Camera& camera) {
-    m_Camera = &camera;
-    m_Frustum = calculateFrustum(m_Camera->getProjectionMatrix() * m_Camera->getViewMatrix());
+    m_FrameCamera = toFrameCameraData(camera);
+    m_Frustum = calculateFrustum(m_FrameCamera->projectionMatrix * m_FrameCamera->viewMatrix);
 
     if (m_SceneMsaaFbo) {
         m_SceneMsaaFbo->bind();
@@ -30,23 +30,25 @@ void RenderManager::beginFrame(const se::scene::Camera& camera) {
 }
 
 void RenderManager::submit(const se::scene::Renderable& renderable) {
-    if (!m_Camera) {
+    if (!m_FrameCamera) {
         throw std::runtime_error("RenderManager: submit called before beginFrame!");
     }
 
-    m_ModelRenderer.submit(renderable, m_Frustum, m_Camera->getViewMatrix());
+    m_ModelRenderer.submit(toModelSubmission(renderable), m_Frustum, m_FrameCamera->viewMatrix);
 }
 
 void RenderManager::endFrame(const se::scene::LightData& lights) {
-    if (!m_Camera) {
+    if (!m_FrameCamera) {
         throw std::runtime_error("RenderManager: endFrame called before beginFrame!");
     }
+
+    const FrameLightData frameLights = toFrameLightData(lights);
 
     m_Stats.reset();
 
     if (m_SceneMsaaFbo && m_SceneFinalFbo) {
         m_SceneMsaaFbo->bind();
-        m_ModelRenderer.flushOpaque(lights, *m_Camera, m_Stats);
+        m_ModelRenderer.flushOpaque(frameLights, *m_FrameCamera, m_Stats);
 
         // Render skybox into MSAA scene color before resolve so it also benefits from MSAA.
         m_SkyboxRenderer.draw();
@@ -55,12 +57,12 @@ void RenderManager::endFrame(const se::scene::LightData& lights) {
 
         m_SceneFinalFbo->bind();
         clearTransparencyTargets(*m_SceneFinalFbo);
-        m_ModelRenderer.flushTransparent(lights, *m_Camera, m_Stats);
+        m_ModelRenderer.flushTransparent(frameLights, *m_FrameCamera, m_Stats);
         m_ModelRenderer.clearQueuedDraws();
 
         m_PostProcess.execute(*m_SceneFinalFbo);
     } else if (m_SceneFinalFbo) {
-        m_ModelRenderer.flush(lights, *m_Camera, m_Stats);
+        m_ModelRenderer.flush(frameLights, *m_FrameCamera, m_Stats);
 
         // Skybox rendered last (before post-process) as early-z discards occluded fragments.
         m_SkyboxRenderer.draw();
@@ -68,7 +70,7 @@ void RenderManager::endFrame(const se::scene::LightData& lights) {
         m_PostProcess.execute(*m_SceneFinalFbo);
     }
 
-    m_Camera = nullptr;
+    m_FrameCamera.reset();
 }
 
 void RenderManager::resizeFramebuffer(int width, int height) {
@@ -103,7 +105,7 @@ void RenderManager::setBatchSize(const size_t maxInstances) { m_ModelRenderer.se
 
 void RenderManager::reset() {
     m_Stats.reset();
-    m_Camera = nullptr;
+    m_FrameCamera.reset();
 }
 
 void RenderManager::initFramebuffer(int width, int height) {

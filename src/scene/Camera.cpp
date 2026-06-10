@@ -33,10 +33,10 @@ void Camera::setClipPlanes(float nearPlane, float farPlane) {
     }
 }
 
-glm::mat4 Camera::getViewMatrix() const { return glm::lookAt(m_Position, m_Position + m_Front, m_Up); }
-
 glm::mat4 Camera::getProjectionMatrix() const {
     return glm::perspective(glm::radians(m_Fov), m_AspectRatio, m_Near, m_Far);
 }
+
+glm::mat4 Camera::getViewMatrix() const { return glm::lookAt(m_Position, m_Position + m_Front, m_Up); }
 
 }  // namespace se::scene

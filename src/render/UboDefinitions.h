@@ -6,6 +6,7 @@
 #include <glm/mat4x4.hpp>
 #include <string_view>
 
+#include "FrameRenderData.h"
 #include "assets/Skeleton.h"
 
 namespace se::render {
@@ -31,7 +32,7 @@ struct alignas(16) FrameUbo {
     glm::vec4 ambient;
     glm::vec4 cameraPos;
     glm::ivec4 lightCounts;
-    std::array<PointLightGpuData, 4> pointLights;
+    std::array<PointLightGpuData, MAX_FRAME_POINT_LIGHTS> pointLights;
 };
 
 struct alignas(16) BoneUbo {
