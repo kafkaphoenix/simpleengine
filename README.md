@@ -2,15 +2,13 @@
 Modern C++23 OpenGL4.6 engine that can be used as a starting point for more complex engines or games. It focuses on clarity and a small feature set while keeping modern practices.
 
 ## Engine Features
-- OpenGL forward renderer with static instancing (mesh/material batching), animated model support, and frustum culling.
-- Models with optional support for skeletal animation.
+- OpenGL forward renderer with static instancing (mesh/material batching), animated model support, frustum culling and post-processing.
 - Diffuse lighting with multiple light sources.
-- Third-person player controller with mouse look and character locomotion state.
-- Basic stats display with configurable update interval.
-- Off-screen HDR framebuffer pipeline with MSAA resolve and post-processing (tone map, inversion, grayscale, sharpen, blur, edge detect).
+- Third-person and first-person camera controllers.
+- Basic stats display.
 - Simple event system for input handling and window events.
 - Asset manager with caching using lightweight handles.
-- Simple config system for runtime settings.
+- Configuration system using TOML files.
 
 For a more detailed look at the engine’s architecture, check out the [game-engine](https://kafkaphoenix.github.io/categories/game-engine/) blog section and the [architecture](docs/architecture.md).
 
@@ -33,7 +31,7 @@ A demo scene is included with the Sponza model and an animated fox as the player
 - WASD: Move
 - Left Shift: Run
 - Mouse: Look
-- Space / Left Ctrl: Up / down
+- V: Toggle camera mode (first/third person)
 - F3: Wireframe toggle
 - F4: Cycle post-process effect (none, tone map, inversion, grayscale, sharpen, blur, edge detect)
 - F5: Cycle stats mode (basic/timing averages)
@@ -50,10 +48,20 @@ Settings live in `config.toml` and are grouped by subsystem:
 - `player`: spawn position
 - `characterController`: walk/run speeds, mouse sensitivity/smoothing, fixed-step options
 - `camera`: projection settings (FOV, near/far, aspect)
-- `thirdPersonCameraController`: follow distance and height
+- `cameraController`: camera mode (first/third person) and related parameters
 - `render`: MSAA sample count and anisotropy level
 - `postProcess`: exposure
 - `stats`: enable flag and update interval
 
-![Sponza screenshot](docs/img/sponza.png)
-*Sponza model*
+<table>
+  <tr>
+    <td align="center">
+      <img src="docs/img/sponza.png" width="100%"><br>
+      <em>Sponza model</em>
+    </td>
+    <td align="center">
+      <img src="docs/img/animated_model.png" width="100%"><br>
+      <em>Animated fox model</em>
+    </td>
+  </tr>
+</table>

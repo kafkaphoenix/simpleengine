@@ -32,8 +32,8 @@ struct Camera {
     float fov, nearPlane, farPlane, aspectRatio;
 };
 
-struct ThirdPersonCameraController {
-    float followDistance, followHeight;
+struct CameraController {
+    float followDistance, followHeight, eyeHeight, eyeForwardOffset;
 };
 
 struct Stats {
@@ -59,9 +59,7 @@ public:
     [[nodiscard]] const config::Player& player() const { return m_Player; }
     [[nodiscard]] const config::CharacterController& characterController() const { return m_CharacterController; }
     [[nodiscard]] const config::Camera& camera() const { return m_Camera; }
-    [[nodiscard]] const config::ThirdPersonCameraController& thirdPersonCameraController() const {
-        return m_ThirdPersonCameraController;
-    }
+    [[nodiscard]] const config::CameraController& cameraController() const { return m_CameraController; }
     [[nodiscard]] const config::Stats& stats() const { return m_Stats; }
     [[nodiscard]] const config::Render& render() const { return m_Render; }
     [[nodiscard]] const config::PostProcess& postProcess() const { return m_PostProcess; }
@@ -71,7 +69,7 @@ private:
     static void readPlayer(const toml::table& t, config::Player& p);
     static void readCharacterController(const toml::table& t, config::CharacterController& cc);
     static void readCamera(const toml::table& t, config::Camera& c);
-    static void readThirdPersonCameraController(const toml::table& t, config::ThirdPersonCameraController& cc);
+    static void readCameraController(const toml::table& t, config::CameraController& cc);
     static void readStats(const toml::table& t, config::Stats& s);
     static void readRender(const toml::table& t, config::Render& r);
     static void readPostProcess(const toml::table& t, config::PostProcess& pp);
@@ -83,7 +81,7 @@ private:
     config::Player m_Player{};
     config::CharacterController m_CharacterController{};
     config::Camera m_Camera{};
-    config::ThirdPersonCameraController m_ThirdPersonCameraController{};
+    config::CameraController m_CameraController{};
     config::Stats m_Stats{};
     config::Render m_Render{};
     config::PostProcess m_PostProcess{};
