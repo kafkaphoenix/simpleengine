@@ -22,6 +22,7 @@ Level::Level(const Config& config, se::render::RenderManager& renderManager, se:
 void Level::update(float deltaTime, const Input& input) {
     m_Player.update(deltaTime, input);
     m_Scene.update(deltaTime);
+    m_Player.finalizeFrame(deltaTime);
 }
 
 void Level::render(se::render::RenderManager& renderManager) {
