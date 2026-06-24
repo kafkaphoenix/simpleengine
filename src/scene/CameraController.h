@@ -3,11 +3,8 @@
 #include <glm/glm.hpp>
 
 #include "Camera.h"
+#include "PlayerIntent.h"
 #include "Transform.h"
-
-namespace se::core {
-class Input;
-}
 
 namespace se::scene {
 
@@ -17,7 +14,7 @@ class CameraController {
 public:
     explicit CameraController(const se::core::config::CameraController& config);
 
-    void updateThirdPersonOrbit(const se::core::Input& input, float initialYaw, float initialPitch);
+    void updateThirdPersonOrbit(const PlayerIntent& intent, float initialYaw, float initialPitch);
     void sync(const Transform& target, float yaw, float pitch, Camera& camera) const;
 
     void setMode(CameraMode mode) { m_Mode = mode; }

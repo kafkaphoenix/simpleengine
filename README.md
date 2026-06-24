@@ -2,9 +2,11 @@
 Modern C++23 OpenGL4.6 engine that can be used as a starting point for more complex engines or games. It focuses on clarity and a small feature set while keeping modern practices.
 
 ## Engine Features
-- OpenGL forward renderer with static instancing (mesh/material batching), animated model support, frustum culling and post-processing.
+- OpenGL forward renderer with static instancing (mesh/material batching), frustum culling and post-processing.
 - Diffuse lighting with multiple light sources.
 - Third-person and first-person camera controllers.
+- Fixed-step gameplay update loop for consistent movement, animation, and root motion.
+- Skeletal animation with clip blending and optional grounded root motion.
 - Basic stats display.
 - Simple event system for input handling and window events.
 - Asset manager with caching using lightweight handles.
@@ -46,9 +48,9 @@ Settings live in `config.toml` and are grouped by subsystem:
 
 - `window`: title, size, position, vsync, mode
 - `player`: spawn position
-- `characterController`: walk/run speeds, mouse sensitivity/smoothing, fixed-step options
-- `camera`: projection settings (FOV, near/far, aspect)
-- `cameraController`: camera mode (first/third person) and related parameters
+- `characterController`: walk/run speeds, mouse sensitivity/smoothing, turn responsiveness, root motion enable flag
+- `camera`: projection settings (FOV, near/far)
+- `cameraController`: third-person follow and first-person eye parameters
 - `render`: MSAA sample count and anisotropy level
 - `postProcess`: exposure
 - `stats`: enable flag and update interval
