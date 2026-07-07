@@ -26,7 +26,7 @@ void SkyboxRenderer::draw() {
 
     m_Shader.bind();
 
-    glBindTextureUnit(0, cubemap->id());
+    cubemap->bind(0);
     glBindSampler(0, m_Sampler);
 
     m_Vao.bind();

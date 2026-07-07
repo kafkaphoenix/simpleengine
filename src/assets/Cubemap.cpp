@@ -5,6 +5,8 @@
 #include <format>
 #include <stdexcept>
 
+#include "TextureUtils.h"
+
 namespace se::assets {
 
 Cubemap::Cubemap(const std::array<std::string, 6>& facePaths) : Asset(facePaths[0]) {
@@ -14,14 +16,21 @@ Cubemap::Cubemap(const std::array<std::string, 6>& facePaths) : Asset(facePaths[
     int width = 0;
     int height = 0;
     int channels = 0;
-    unsigned char* probe = stbi_load(facePaths[0].c_str(), &width, &height, &channels, 0);
-    if (!probe) {
-        throw std::runtime_error(std::format("Failed to load cubemap face: {}", facePaths[0]));
+    {
+        unsigned char* probe = stbi_load(facePaths[0].c_str(), &width, &height, &channels, 0);
+        if (!probe) {
+            throw std::runtime_error(std::format("Failed to load cubemap face: {}", facePaths[0]));
+        }
+        stbi_image_free(probe);
     }
-    stbi_image_free(probe);
 
-    GLenum internalFormat = (channels == 4) ? GL_RGBA8 : GL_RGB8;
-    GLenum format = (channels == 4) ? GL_RGBA : GL_RGB;
+    const auto [internalFormat, format] = channelsToGLFormat(channels);
+
+    if (channels == 3) {
+        // Fix pixel alignment for RGB textures whose rows aren't 4-byte aligned.
+        // https://stackoverflow.com/questions/71284184/opengl-distorted-texture
+        glPixelStorei(GL_UNPACK_ALIGNMENT, (3 * width % 4 == 0) ? 4 : 1);
+    }
 
     // Allocate immutable storage for all 6 faces at once
     glTextureStorage2D(m_Id, 1, internalFormat, width, height);
@@ -35,6 +44,7 @@ Cubemap::Cubemap(const std::array<std::string, 6>& facePaths) : Asset(facePaths[
         if (!data) {
             throw std::runtime_error(std::format("Failed to load cubemap face: {}", facePaths.at(i)));
         }
+
         if (w != width || h != height) {
             stbi_image_free(data);
             throw std::runtime_error(std::format("Cubemap face size mismatch: {} is {}x{}, expected {}x{}",
@@ -46,6 +56,13 @@ Cubemap::Cubemap(const std::array<std::string, 6>& facePaths) : Asset(facePaths[
         stbi_image_free(data);
     }
 
+    if (channels == 3) {
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // reset to default
+    }
+
+    m_Width = width;
+    m_Height = height;
+
     std::string label = std::format("Cubemap [{}]", m_Name);
     glObjectLabel(GL_TEXTURE, m_Id, static_cast<GLsizei>(label.size()), label.c_str());
 }
@@ -55,5 +72,7 @@ Cubemap::~Cubemap() {
         glDeleteTextures(1, &m_Id);
     }
 }
+
+void Cubemap::bind(unsigned int slot) const { glBindTextureUnit(slot, m_Id); }
 
 }  // namespace se::assets

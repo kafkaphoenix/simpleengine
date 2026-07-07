@@ -21,6 +21,7 @@
 #include "Shader.h"
 #include "StringHash.h"
 #include "Texture.h"
+#include "TextureArray.h"
 #include "UUID.h"
 
 namespace se::assets {
@@ -71,6 +72,20 @@ public:
         m_PathToId[key] = id;
         return {this, id};
     }
+    TextureArrayHandle getOrLoadGeneratedTextureArray(std::string_view name, std::span<const uint8_t> data, int width,
+                                                      int height, int layers, int channels) {
+        std::string key = std::format("texture_array_{}", name);
+        auto it = m_PathToId.find(key);
+        if (it != m_PathToId.end()) {
+            return {this, it->second};
+        }
+
+        UUID id = UUID();
+        auto tex = std::make_unique<TextureArray>(std::string(name), data, width, height, layers, channels);
+        m_Assets[id] = std::move(tex);
+        m_PathToId[key] = id;
+        return {this, id};
+    }
     CubemapHandle getOrLoadCubemap(const std::array<std::string, 6>& facePaths) {
         std::string key = std::format("cubemap_{}_{}_{}_{}_{}_{}", facePaths[0], facePaths[1], facePaths[2],
                                       facePaths[3], facePaths[4], facePaths[5]);
@@ -98,12 +113,14 @@ public:
         removeAssetByPath(std::format("cubemap_{}_{}_{}_{}_{}_{}", facePaths[0], facePaths[1], facePaths[2],
                                       facePaths[3], facePaths[4], facePaths[5]));
     }
+    void removeTextureArray(std::string_view name) { removeAssetByPath(std::format("texture_array_{}", name)); }
     void removeMaterial(std::string_view name) { removeAssetByPath(std::format("material_{}", name)); }
 
     ShaderHandle getShader(UUID id) { return getAssetById<Shader>(id); }
     ModelHandle getModel(UUID id) { return getAssetById<Model>(id); }
     TextureHandle getTexture(UUID id) { return getAssetById<Texture>(id); }
     CubemapHandle getCubemap(UUID id) { return getAssetById<Cubemap>(id); }
+    TextureArrayHandle getTextureArray(UUID id) { return getAssetById<TextureArray>(id); }
     MaterialHandle getMaterial(UUID id) { return getAssetById<Material>(id); }
 
     void clear() {
